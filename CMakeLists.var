@@ -1,0 +1,43 @@
+##############################################
+#
+# CMake project build suite v1.1.0
+# Author: Oleg F., fedorov.ftf@gmail.com
+#
+##############################################
+
+set(project_name ratingCalculator)
+
+set(${project_name}_version_major 0)
+set(${project_name}_version_minor 1)
+set(${project_name}_version_patch 0)
+
+set(${project_name}_definitions )
+
+set(modules
+    core
+    webapi
+    service
+    testClient
+    )
+
+set(CMAKE_BUILD_TYPE Debug)
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_MULTITHREADED ON)
+
+if(WIN32)
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+  endif ()
+  set(Boost_DETAILED_FAILURE_MSG ON)
+  set(Boost_USE_STATIC_RUNTIME ON)
+endif()
+
+find_package(Boost 1.64.0 COMPONENTS system program_options serialization REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+
+find_package(OpenSSL REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIR})
+
+# Logger specific settings
+add_definitions(-DULOG_INFO)
+# add_definitions(-DZLOG)

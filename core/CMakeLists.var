@@ -1,0 +1,45 @@
+##############################################
+#
+# CMake project build suite v1.1.0
+# Author: Oleg F., fedorov.ftf@gmail.com
+#
+##############################################
+
+set(module_name core)
+
+set(module_type library)
+
+set(library_type)
+
+set(headers
+    include/core/ThreadHelper.hpp
+    include/core/BaseException.hpp
+    include/core/SystemException.hpp
+    include/core/EnumConverter.hpp
+    include/core/ulog.h
+    include/core/Types.hpp
+    )
+
+set(sources
+    src/BaseException.cpp
+    src/SystemException.cpp
+    src/ulog.c
+    )
+
+set(tests
+    test/EnumConverter_test.cpp
+    )
+
+set(definitions
+    )
+
+
+set(libraries
+    )
+
+set(external_libraries
+    )
+
+set(libraries_test
+    ratingCalculator_core
+    )

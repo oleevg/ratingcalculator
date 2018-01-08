@@ -1,0 +1,51 @@
+##############################################
+#
+# CMake project build suite v1.1.0
+# Author: Oleg F., fedorov.ftf@gmail.com
+#
+##############################################
+
+set(module_name testClient)
+
+set(module_type executable)
+
+set(library_type)
+
+set(headers
+    src/UserSimulator.hpp
+    src/RequestGenerator.hpp
+    )
+
+set(sources
+    src/main.cpp
+    src/UserSimulator.cpp
+    src/RequestGenerator.cpp
+    )
+
+set(tests
+    )
+
+set(definitions
+    )
+
+set(libraries
+    ratingCalculator_core
+    ratingCalculator_webapi
+    )
+
+set(libraries_UNIX
+    pthread
+    )
+
+set(external_libraries
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_SERIALIZATION_LIBRARY}
+    )
+
+
+set(libraries_test
+    )
+
+set(libraries_test_UNIX
+    )

@@ -1,0 +1,59 @@
+##############################################
+#
+# CMake project build suite v1.1.0
+# Author: Oleg F., fedorov.ftf@gmail.com
+#
+##############################################
+
+set(module_name webapi)
+
+set(module_type library)
+
+set(library_type)
+
+set(headers
+    include/webapi/websockets/crypto.hpp
+    include/webapi/websockets/status_code.hpp
+    include/webapi/websockets/utility.hpp
+    include/webapi/websockets/server_ws.hpp
+    include/webapi/websockets/client_ws.hpp
+    include/webapi/serialization/JsonSerializer.hpp
+    include/webapi/serialization/JsonDeserializer.hpp
+    include/webapi/serialization/JsonSerializerModel.hpp
+    include/webapi/serialization/JsonDeserializerModel.hpp
+    include/webapi/serialization/SerializerException.hpp
+    include/webapi/serialization/JsonSerializerWsMessage.hpp
+    include/webapi/serialization/JsonDeserializerWsMessage.hpp
+    include/webapi/transport/Model.hpp
+    include/webapi/transport/WsMessage.hpp
+    include/webapi/transport/WsProtocol.hpp
+    )
+
+set(sources
+    src/transport/WsMessage.cpp
+    src/transport/Model.cpp
+    src/transport/WsProtocol.cpp
+    )
+
+set(tests
+    test/ModelSerialization_test.cpp
+    test/WsMessageSerialization_test.cpp
+    )
+
+set(definitions
+    )
+
+
+set(libraries
+    ratingCalculator_core
+    )
+
+set(external_libraries
+    ${Boost_SYSTEM_LIBRARY}
+    ${OPENSSL_LIBRARIES}
+    )
+
+set(libraries_test
+    ratingCalculator_core
+    ratingCalculator_webapi
+    )
