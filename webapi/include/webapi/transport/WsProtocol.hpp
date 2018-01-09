@@ -30,8 +30,8 @@ namespace rating_calculator {
         public:
           WsProtocol(size_t resendNumber, int resendTimeout);
 
-          template <class T, class ConnectionSide>
-          void sendMessage(const Message<T>& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection);
+          template <class ConnectionSide>
+          void sendMessage(const BaseMessage::Ptr& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 
 
           template <class ConnectionSide>
@@ -50,10 +50,10 @@ namespace rating_calculator {
 
       };
 
-      template <class T, class ConnectionSide>
-      void WsProtocol::sendMessage(const Message<T>& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection)
+      template <class ConnectionSide>
+      void WsProtocol::sendMessage(const BaseMessage::Ptr& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection)
       {
-        WsData<Message<T>> wsData(getNextOutCounter(), message.getType(), message.getData());
+        WsData wsData(getNextOutCounter(), message);
         boost::property_tree::ptree tree = serialization::JsonSerializer<decltype(wsData)>::Serialize(wsData);
 
         auto send_stream = std::make_shared<typename ConnectionSide::SendStream>();

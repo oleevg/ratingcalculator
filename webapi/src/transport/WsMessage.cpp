@@ -46,6 +46,14 @@ namespace rating_calculator {
       WsAck::WsAck(WsMessageIdentifier id) : WsMessage(WsMessageType::Ack, id)
       {}
 
+      WsData::WsData(WsMessageIdentifier id, const BaseMessage::Ptr& data) : WsMessage(WsMessageType::Data, id),
+                                                                             data_(data)
+      {}
+
+      const BaseMessage::Ptr& WsData::getData() const
+      {
+        return data_;
+      }
     }
 
   }

@@ -13,6 +13,7 @@
 #include <memory>
 
 #include <core/EnumConverter.hpp>
+#include "Model.hpp"
 
 namespace rating_calculator {
 
@@ -63,24 +64,17 @@ namespace rating_calculator {
           WsAck(WsMessageIdentifier id);
       };
 
-      template<class T>
-      class WsData : public WsMessage {
+        class WsData : public WsMessage {
         public:
           typedef std::shared_ptr<WsData> Ptr;
 
         public:
-          template<typename... Args>
-          WsData(WsMessageIdentifier id, Args&& ... args) : WsMessage(WsMessageType::Data, id),
-                                                          data_(std::make_shared<T>(std::forward<Args>(args)...))
-          {}
+         WsData(WsMessageIdentifier id, const BaseMessage::Ptr& data);
 
-          const std::shared_ptr<T>& getData() const
-          {
-            return data_;
-          }
+          const BaseMessage::Ptr& getData() const;
 
         private:
-          std::shared_ptr<T> data_;
+            BaseMessage::Ptr data_;
       };
 
     }

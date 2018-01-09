@@ -32,9 +32,10 @@ namespace rating_calculator {
           typedef std::shared_ptr<BaseMessage> Ptr;
 
         public:
-          BaseMessage(MessageType type);
-
           MessageType getType() const;
+
+        protected:
+          BaseMessage(MessageType type);
 
         private:
           MessageType type_;
@@ -47,11 +48,6 @@ namespace rating_calculator {
           Message(MessageType type, Args&& ... args): BaseMessage(type), data_(std::forward<Args>(args)...)
           {}
 
-          bool operator==(const Message& message) const
-          {
-            return ((getType() == message.getType()) && (getData() == message.getData()));
-          }
-
           const T& getData() const
           {
             return data_;
@@ -61,7 +57,15 @@ namespace rating_calculator {
           T data_;
       };
 
+      template <class T>
+      bool operator==(const transport::Message<T>& lhs, const transport::Message<T>& rhs)
+      {
+        bool base = lhs.getType() == rhs.getType();
 
+        bool derived = (lhs.getData() == rhs.getData());
+
+        return (base && derived);
+      }
 
     }
 

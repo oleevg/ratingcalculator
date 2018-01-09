@@ -25,16 +25,6 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
   namespace serialization = rating_calculator::webapi::serialization;
 
   template <class T>
-  bool operator==(const transport::Message<T>& lhs, const transport::Message<T>& rhs)
-  {
-    bool base = lhs.getType() == rhs.getType();
-
-    bool derived = (lhs.getData() == rhs.getData());
-
-    return (base && derived);
-  }
-
-  template <class T>
   using JsSerializer = serialization::JsonSerializer<T>;
 
   template <class T>

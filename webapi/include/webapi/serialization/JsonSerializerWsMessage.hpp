@@ -57,13 +57,13 @@ namespace rating_calculator {
         }
       };
 
-      template <class T>
-      struct JsonSerializer<transport::WsData<T>> {
-        static boost::property_tree::ptree Serialize(const transport::WsData<T>& value)
+      template <>
+      struct JsonSerializer<transport::WsData> {
+        static boost::property_tree::ptree Serialize(const transport::WsData& value)
         {
           boost::property_tree::ptree result = JsonSerializer<transport::WsMessage>::Serialize(value);
 
-          boost::property_tree::ptree child = JsonSerializer<T>::Serialize(*value.getData());
+          boost::property_tree::ptree child = JsonSerializer<transport::BaseMessage>::Serialize(*value.getData());
 
           result.add_child("data", child);
 

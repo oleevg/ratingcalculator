@@ -52,17 +52,17 @@ namespace rating_calculator {
 //        }
 //      };
 
-      template<class T>
-      struct JsonDeserializer<transport::WsData<T>> {
-        static transport::WsData<T> Parse(const boost::property_tree::ptree& tree)
+      template<>
+      struct JsonDeserializer<transport::WsData> {
+        static transport::WsData Parse(const boost::property_tree::ptree& tree)
         {
           if (!tree.empty())
           {
 
             auto id = JsonDeserializer<transport::WsMessageIdentifier>::Parse(tree.get_child("id"));
-            std::shared_ptr<T> data = std::make_shared<T>(JsonDeserializer<T>::Parse(tree.get_child("data")));
+            auto data = JsonDeserializer<transport::BaseMessage>::Parse(tree.get_child("data"));
 
-            return transport::WsData<T>(id, *data);
+            return transport::WsData(id, data);
           }
 
           throw SerializerException("Can't deserialize empty JSON value.");
@@ -90,18 +90,7 @@ namespace rating_calculator {
             }
             else if(type == transport::WsMessageType::Data)
             {
-              transport::BaseMessage::Ptr baseMessage = JsonDeserializer<transport::BaseMessage>::Parse(tree.get_child("data"));
-
-              if(baseMessage->getType() == transport::MessageType::UserConnected)
-              {
-                auto userConnectedMessage = std::static_pointer_cast<transport::Message<core::UserIdInformation>>(baseMessage);
-                result = std::make_shared<transport::WsData<core::UserIdInformation>>(id, userConnectedMessage->getData());
-              }
-              else if(baseMessage->getType() == transport::MessageType::UserRegistered)
-              {
-                auto userRegisteredMessage = std::static_pointer_cast<transport::Message<core::UserInformation>>(baseMessage);
-                result = std::make_shared<transport::WsData<core::UserInformation>>(id, userRegisteredMessage->getData());
-              }
+              result = std::make_shared<transport::WsData>(JsonDeserializer<transport::WsData>::Parse(tree));
             }
 
             return result;

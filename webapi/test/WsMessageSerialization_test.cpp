@@ -33,12 +33,12 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
     return (base && derived);
   }
 
-  template <class T>
-  bool operator==(const transport::WsData<T>& lhs, const transport::WsData<T>& rhs)
+  bool operator==(const transport::WsData& lhs, const transport::WsData& rhs)
   {
     std::cout << "WsData comparison" << std::endl;
     bool base = static_cast<const transport::WsMessage&>(lhs) == static_cast<const transport::WsMessage&>(rhs);
-    bool derived = (*lhs.getData() == *rhs.getData());
+    // TODO: deep comparison
+    bool derived = (lhs.getData() == rhs.getData());
 
     return (base && derived);
   }
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
     BOOST_REQUIRE(wsError == wsErrorDeserialized);
 
     // transport::WsData<transport::Message<rating_calculator::core::UserInformation>>
-    transport::WsData<transport::Message<rating_calculator::core::UserInformation>> wsData(123, transport::MessageType::UserRegistered, 1234, "user");
+    transport::WsData wsData(123, std::make_shared<transport::Message<rating_calculator::core::UserInformation>>(transport::MessageType::UserRegistered, 1234, "user"));
 
     tree = serialization::JsonSerializer<decltype(wsData)>::Serialize(wsData);
 
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
     BOOST_REQUIRE(wsData == wsDataDeserialized);
 
     // transport::WsData<transport::Message<rating_calculator::core::DealInformation>>
-    transport::WsData<transport::Message<rating_calculator::core::DealInformation>> wsDealInformation(124, transport::MessageType::UserDealWon, 1234, 777, 123.456);
+    transport::WsData wsDealInformation(124, std::make_shared<transport::Message<rating_calculator::core::DealInformation>>(transport::MessageType::UserDealWon, 1234, 777, 123.456));
 
     tree = serialization::JsonSerializer<decltype(wsDealInformation)>::Serialize(wsDealInformation);
 

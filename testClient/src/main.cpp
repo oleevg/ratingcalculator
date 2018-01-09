@@ -72,14 +72,14 @@ int main(int argc, const char* argv[])
       auto userConnectedMessage = std::static_pointer_cast<transport::Message<core::UserIdInformation>>(message);
 
       std::cout << "Connection: " << clientConnection << std::endl;
-      protocol.sendMessage<core::UserIdInformation, WsClient>(*userConnectedMessage, clientConnection);
+      protocol.sendMessage<WsClient>(userConnectedMessage, clientConnection);
     }
     else if (message->getType() == rating_calculator::webapi::transport::MessageType::UserRegistered)
     {
       auto userRegisteredMessage = std::static_pointer_cast<transport::Message<core::UserInformation>>(message);
 
       std::cout << "Connection: " << clientConnection << std::endl;
-      protocol.sendMessage<core::UserInformation, WsClient>(*userRegisteredMessage, clientConnection);
+      protocol.sendMessage<WsClient>(userRegisteredMessage, clientConnection);
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(3));

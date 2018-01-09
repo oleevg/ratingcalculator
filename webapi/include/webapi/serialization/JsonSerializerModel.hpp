@@ -59,25 +59,34 @@ namespace rating_calculator {
         }
       };
 
+      template<class T>
+      struct JsonSerializer<transport::Message<T>> {
+        static boost::property_tree::ptree Serialize(const transport::Message<T>& value)
+        {
+          boost::property_tree::ptree result;
+          result.add_child("type", JsonSerializer<decltype(value.getType())>::Serialize(value.getType()));
+          result.add_child("payload", JsonSerializer<T>::Serialize(value.getData()));
+
+          return result;
+        }
+      };
+
       template<>
       struct JsonSerializer<transport::BaseMessage> {
         static boost::property_tree::ptree Serialize(const transport::BaseMessage& value)
         {
           boost::property_tree::ptree result;
 
-          result.add_child("type", JsonSerializer<decltype(value.getType())>::Serialize(value.getType()));
-
-          return result;
-        }
-      };
-
-      template<class T>
-      struct JsonSerializer<transport::Message<T>> {
-        static boost::property_tree::ptree Serialize(const transport::Message<T>& value)
-        {
-          boost::property_tree::ptree result = JsonSerializer<transport::BaseMessage>::Serialize(value);
-
-          result.add_child("payload", JsonSerializer<T>::Serialize(value.getData()));
+          if(value.getType() == transport::MessageType::UserRegistered)
+          {
+            auto userRegisteredMessage = static_cast<const transport::Message<core::UserInformation>&>(value);
+            result = JsonSerializer<transport::Message<core::UserInformation>>::Serialize(userRegisteredMessage);
+          }
+          else if(value.getType() == transport::MessageType::UserConnected)
+          {
+            auto userConnectedMessage = static_cast<const transport::Message<core::UserIdInformation>&>(value);
+            result = JsonSerializer<transport::Message<core::UserIdInformation>>::Serialize(userConnectedMessage);
+          }
 
           return result;
         }
