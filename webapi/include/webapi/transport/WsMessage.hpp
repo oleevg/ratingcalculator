@@ -13,7 +13,7 @@
 #include <memory>
 
 #include <core/EnumConverter.hpp>
-#include "Model.hpp"
+#include <core/Model.hpp>
 
 namespace rating_calculator {
 
@@ -69,12 +69,12 @@ namespace rating_calculator {
           typedef std::shared_ptr<WsData> Ptr;
 
         public:
-         WsData(WsMessageIdentifier id, const BaseMessage::Ptr& data);
+         WsData(WsMessageIdentifier id, const core::BaseMessage::Ptr& data);
 
-          const BaseMessage::Ptr& getData() const;
+          const core::BaseMessage::Ptr& getData() const;
 
         private:
-            BaseMessage::Ptr data_;
+            core::BaseMessage::Ptr data_;
       };
 
     }

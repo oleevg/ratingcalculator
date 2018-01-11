@@ -22,6 +22,7 @@ namespace rating_calculator {
 
         void setConnected(bool connected);
         void changeName(const std::string& name);
+        const std::string& getName() const;
         bool isConnected() const;
 
       private:

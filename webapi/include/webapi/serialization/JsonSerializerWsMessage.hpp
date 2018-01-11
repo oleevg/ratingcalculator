@@ -18,9 +18,9 @@ namespace rating_calculator {
 
     namespace serialization {
 
-      template <>
-      struct JsonSerializer<transport::WsMessage> {
-        static boost::property_tree::ptree Serialize(const transport::WsMessage& value)
+      namespace {
+
+        boost::property_tree::ptree SerializeWsMessage(const transport::WsMessage& value)
         {
           boost::property_tree::ptree result;
 
@@ -29,13 +29,14 @@ namespace rating_calculator {
 
           return result;
         }
-      };
+
+      }
 
       template <>
       struct JsonSerializer<transport::WsAck> {
         static boost::property_tree::ptree Serialize(const transport::WsAck& value)
         {
-          boost::property_tree::ptree result = JsonSerializer<transport::WsMessage>::Serialize(value);
+          boost::property_tree::ptree result = SerializeWsMessage(value);
 
           return result;
         }
@@ -45,7 +46,7 @@ namespace rating_calculator {
       struct JsonSerializer<transport::WsError> {
         static boost::property_tree::ptree Serialize(const transport::WsError& value)
         {
-          boost::property_tree::ptree result = JsonSerializer<transport::WsMessage>::Serialize(value);
+          boost::property_tree::ptree result = SerializeWsMessage(value);
 
           boost::property_tree::ptree child;
           child.add_child("message", JsonSerializer<std::string>::Serialize(value.getErrorMessage()));
@@ -61,11 +62,37 @@ namespace rating_calculator {
       struct JsonSerializer<transport::WsData> {
         static boost::property_tree::ptree Serialize(const transport::WsData& value)
         {
-          boost::property_tree::ptree result = JsonSerializer<transport::WsMessage>::Serialize(value);
+          boost::property_tree::ptree result = SerializeWsMessage(value);
 
-          boost::property_tree::ptree child = JsonSerializer<transport::BaseMessage>::Serialize(*value.getData());
+          boost::property_tree::ptree child = JsonSerializer<core::BaseMessage>::Serialize(*value.getData());
 
           result.add_child("data", child);
+
+          return result;
+        }
+      };
+
+      template <>
+      struct JsonSerializer<transport::WsMessage> {
+        static boost::property_tree::ptree Serialize(const transport::WsMessage& value)
+        {
+          boost::property_tree::ptree result;
+
+          if(value.getType() == transport::WsMessageType::Ack)
+          {
+            auto wsAck = static_cast<const transport::WsAck&>(value);
+            result = JsonSerializer<transport::WsAck>::Serialize(wsAck);
+          }
+          else if(value.getType() == transport::WsMessageType::Error)
+          {
+            auto wsError = static_cast<const transport::WsError&>(value);
+            result = JsonSerializer<transport::WsError>::Serialize(wsError);
+          }
+          else if(value.getType() == transport::WsMessageType::Data)
+          {
+            auto wsData = static_cast<const transport::WsData&>(value);
+            result = JsonSerializer<transport::WsData>::Serialize(wsData);
+          }
 
           return result;
         }

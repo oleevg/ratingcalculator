@@ -12,7 +12,7 @@
 
 #include <core/Types.hpp>
 
-#include <webapi/transport/Model.hpp>
+#include <core/Model.hpp>
 
 #include "JsonDeserializer.hpp"
 #include "SerializerException.hpp"
@@ -73,16 +73,16 @@ namespace rating_calculator {
 
 
       template<class T>
-      struct JsonDeserializer<transport::Message<T>> {
-        static transport::Message<T> Parse(const boost::property_tree::ptree& value)
+      struct JsonDeserializer<core::Message<T>> {
+        static core::Message<T> Parse(const boost::property_tree::ptree& value)
         {
           if (!value.empty())
           {
-            auto type = JsonDeserializer<transport::MessageType>::Parse(value.get_child("type"));
+            auto type = JsonDeserializer<core::MessageType>::Parse(value.get_child("type"));
 
             T payload = JsonDeserializer<T>::Parse(value.get_child("payload"));
 
-            return transport::Message<T>(type, payload);
+            return core::Message<T>(type, payload);
           }
 
           throw SerializerException("Can't deserialize empty JSON value.");
@@ -90,22 +90,34 @@ namespace rating_calculator {
       };
 
       template<>
-      struct JsonDeserializer<transport::BaseMessage> {
-        static transport::BaseMessage::Ptr Parse(const boost::property_tree::ptree& value)
+      struct JsonDeserializer<core::BaseMessage> {
+        static core::BaseMessage::Ptr Parse(const boost::property_tree::ptree& value)
         {
           if (!value.empty())
           {
-            transport::BaseMessage::Ptr result;
+            core::BaseMessage::Ptr result;
 
-            auto type = JsonDeserializer<transport::MessageType>::Parse(value.get_child("type"));
+            auto type = JsonDeserializer<core::MessageType>::Parse(value.get_child("type"));
 
-            if(type == transport::MessageType::UserRegistered)
+            if(type == core::MessageType::UserRegistered)
             {
-              result = std::make_shared<transport::Message<core::UserInformation>>(JsonDeserializer<transport::Message<core::UserInformation>>::Parse(value));
+              result = std::make_shared<core::Message<core::UserInformation>>(JsonDeserializer<core::Message<core::UserInformation>>::Parse(value));
             }
-            else if(type == transport::MessageType::UserConnected)
+            else if(type == core::MessageType::UserRenamed)
             {
-              result = std::make_shared<transport::Message<core::UserIdInformation>>(JsonDeserializer<transport::Message<core::UserIdInformation>>::Parse(value));
+              result = std::make_shared<core::Message<core::UserInformation>>(JsonDeserializer<core::Message<core::UserInformation>>::Parse(value));
+            }
+            else if(type == core::MessageType::UserConnected)
+            {
+              result = std::make_shared<core::Message<core::UserIdInformation>>(JsonDeserializer<core::Message<core::UserIdInformation>>::Parse(value));
+            }
+            else if(type == core::MessageType::UserDisconnected)
+            {
+              result = std::make_shared<core::Message<core::UserIdInformation>>(JsonDeserializer<core::Message<core::UserIdInformation>>::Parse(value));
+            }
+            else if(type == core::MessageType::UserDealWon)
+            {
+              result = std::make_shared<core::Message<core::DealInformation>>(JsonDeserializer<core::Message<core::DealInformation>>::Parse(value));
             }
 
             return result;

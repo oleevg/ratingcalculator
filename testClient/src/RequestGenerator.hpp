@@ -9,8 +9,10 @@
 #define RATINGCALCULATOR_REQUESTGENERATOR_HPP
 
 #include <vector>
+#include <mutex>
+#include <condition_variable>
 
-#include <webapi/transport/Model.hpp>
+#include <core/Model.hpp>
 
 #include "UserSimulator.hpp"
 
@@ -20,12 +22,19 @@ namespace rating_calculator {
 
     class RequestGenerator {
       public:
-        RequestGenerator();
+        RequestGenerator(size_t usersNumber);
 
-        webapi::transport::BaseMessage::Ptr generateMessage();
+        core::BaseMessage::Ptr generateUserCommonMessage();
+        core::BaseMessage::Ptr generateUserRegistedMessage();
+
+        size_t getRegisteredUsersNumber() const;
+
+        void waitForUsersToRegister();
 
       private:
         std::vector<UserSimulator> users;
+        mutable std::mutex usersMutex;
+        std::condition_variable usersCondVar;
 
         const size_t nUsersMax;
     };

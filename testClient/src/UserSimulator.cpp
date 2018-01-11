@@ -31,5 +31,10 @@ namespace rating_calculator {
     {
       this->connected = connected;
     }
+
+    const std::string& UserSimulator::getName() const
+    {
+      return userInformation.name;
+    }
   }
   }

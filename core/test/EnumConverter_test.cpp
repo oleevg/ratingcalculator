@@ -26,8 +26,8 @@ namespace rating_calculator {
     template<>
     rating_calculator::core::EnumConverter<TestEnum>::EnumConverter()
     {
-      addTranslation(TestEnum::Value1, "value1");
-      addTranslation(TestEnum::Value2, "value2");
+      addConversion(TestEnum::Value1, "value1");
+      addConversion(TestEnum::Value2, "value2");
     }
 
   }

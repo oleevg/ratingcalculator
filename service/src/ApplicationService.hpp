@@ -34,7 +34,7 @@ namespace rating_calculator {
 
       private:
         WsServer server;
-        webapi::transport::WsProtocol protocol;
+        webapi::transport::WsProtocol<WsServer> protocol;
     };
 
   }

@@ -37,15 +37,16 @@ namespace rating_calculator {
 
       echo.on_message = [selfType](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message)
       {
-        webapi::transport::BaseMessage::Ptr baseMessage = selfType->protocol.parseMessage<WsServer>(message, connection);
+        std::cout << "Server: Message received" << std::endl;
+        core::BaseMessage::Ptr baseMessage = selfType->protocol.parseMessage(message, connection);
 
-        if(baseMessage->getType() == webapi::transport::MessageType::UserRegistered)
+        if(baseMessage->getType() == core::MessageType::UserRegistered)
         {
-          auto userRegisteredMessage = std::static_pointer_cast<webapi::transport::Message<core::UserInformation>>(baseMessage);
+          auto userRegisteredMessage = std::static_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
         }
-        else if(baseMessage->getType() == webapi::transport::MessageType::UserConnected)
+        else if(baseMessage->getType() == core::MessageType::UserConnected)
         {
-          auto userConnectedMessage = std::static_pointer_cast<webapi::transport::Message<core::UserIdInformation>>(baseMessage);
+          auto userConnectedMessage = std::static_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
         }
 
       };
@@ -70,13 +71,16 @@ namespace rating_calculator {
     {
       setWsEndpoints();
 
+      protocol.start();
+
       auto selfCopy = shared_from_this();
 
-      std::thread server_thread([selfCopy]() {
+      std::thread serverThread([selfCopy]() {
         selfCopy->server.start();
       });
 
-      server_thread.join();
+      serverThread.join();
+      protocol.stop();
 
       return 0;
     }

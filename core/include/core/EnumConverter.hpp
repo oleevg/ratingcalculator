@@ -34,7 +34,7 @@ namespace rating_calculator {
 
         EnumConverter();
 
-        void addTranslation(const T& key, const std::string& value)
+        void addConversion(const T& key, const std::string& value)
         {
           enumToString.insert({key, value});
           stringToEnum.insert({value, key});

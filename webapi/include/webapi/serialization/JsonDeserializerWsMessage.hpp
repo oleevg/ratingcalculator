@@ -60,7 +60,7 @@ namespace rating_calculator {
           {
 
             auto id = JsonDeserializer<transport::WsMessageIdentifier>::Parse(tree.get_child("id"));
-            auto data = JsonDeserializer<transport::BaseMessage>::Parse(tree.get_child("data"));
+            auto data = JsonDeserializer<core::BaseMessage>::Parse(tree.get_child("data"));
 
             return transport::WsData(id, data);
           }

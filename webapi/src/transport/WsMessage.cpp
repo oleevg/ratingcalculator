@@ -46,11 +46,11 @@ namespace rating_calculator {
       WsAck::WsAck(WsMessageIdentifier id) : WsMessage(WsMessageType::Ack, id)
       {}
 
-      WsData::WsData(WsMessageIdentifier id, const BaseMessage::Ptr& data) : WsMessage(WsMessageType::Data, id),
+      WsData::WsData(WsMessageIdentifier id, const core::BaseMessage::Ptr& data) : WsMessage(WsMessageType::Data, id),
                                                                              data_(data)
       {}
 
-      const BaseMessage::Ptr& WsData::getData() const
+      const core::BaseMessage::Ptr& WsData::getData() const
       {
         return data_;
       }
@@ -63,9 +63,9 @@ namespace rating_calculator {
     template <>
     EnumConverter<webapi::transport::WsMessageType>::EnumConverter()
     {
-      addTranslation(webapi::transport::WsMessageType::Data, "data");
-      addTranslation(webapi::transport::WsMessageType::Ack, "ack");
-      addTranslation(webapi::transport::WsMessageType::Error, "error");
+      addConversion(webapi::transport::WsMessageType::Data, "data");
+      addConversion(webapi::transport::WsMessageType::Ack, "ack");
+      addConversion(webapi::transport::WsMessageType::Error, "error");
     }
 
   }

@@ -8,11 +8,14 @@
 #ifndef RATINGCALCULATOR_JSONSERIALIZERMODEL_HPP
 #define RATINGCALCULATOR_JSONSERIALIZERMODEL_HPP
 
+#include <boost/format.hpp>
+
 #include <core/Types.hpp>
 
-#include <webapi/transport/Model.hpp>
+#include <core/Model.hpp>
 
 #include "JsonSerializer.hpp"
+#include "SerializerException.hpp"
 
 namespace rating_calculator {
 
@@ -60,8 +63,8 @@ namespace rating_calculator {
       };
 
       template<class T>
-      struct JsonSerializer<transport::Message<T>> {
-        static boost::property_tree::ptree Serialize(const transport::Message<T>& value)
+      struct JsonSerializer<core::Message<T>> {
+        static boost::property_tree::ptree Serialize(const core::Message<T>& value)
         {
           boost::property_tree::ptree result;
           result.add_child("type", JsonSerializer<decltype(value.getType())>::Serialize(value.getType()));
@@ -72,20 +75,40 @@ namespace rating_calculator {
       };
 
       template<>
-      struct JsonSerializer<transport::BaseMessage> {
-        static boost::property_tree::ptree Serialize(const transport::BaseMessage& value)
+      struct JsonSerializer<core::BaseMessage> {
+        static boost::property_tree::ptree Serialize(const core::BaseMessage& value)
         {
           boost::property_tree::ptree result;
 
-          if(value.getType() == transport::MessageType::UserRegistered)
+          if(value.getType() == core::MessageType::UserRegistered)
           {
-            auto userRegisteredMessage = static_cast<const transport::Message<core::UserInformation>&>(value);
-            result = JsonSerializer<transport::Message<core::UserInformation>>::Serialize(userRegisteredMessage);
+            auto userRegisteredMessage = static_cast<const core::Message<core::UserInformation>&>(value);
+            result = JsonSerializer<core::Message<core::UserInformation>>::Serialize(userRegisteredMessage);
           }
-          else if(value.getType() == transport::MessageType::UserConnected)
+          else if(value.getType() == core::MessageType::UserRenamed)
           {
-            auto userConnectedMessage = static_cast<const transport::Message<core::UserIdInformation>&>(value);
-            result = JsonSerializer<transport::Message<core::UserIdInformation>>::Serialize(userConnectedMessage);
+            auto userRenamedMessage = static_cast<const core::Message<core::UserInformation>&>(value);
+            result = JsonSerializer<core::Message<core::UserInformation>>::Serialize(userRenamedMessage);
+          }
+          else if(value.getType() == core::MessageType::UserConnected)
+          {
+            auto userConnectedMessage = static_cast<const core::Message<core::UserIdInformation>&>(value);
+            result = JsonSerializer<core::Message<core::UserIdInformation>>::Serialize(userConnectedMessage);
+          }
+          else if(value.getType() == core::MessageType::UserDisconnected)
+          {
+            auto userDisconnectedMessage = static_cast<const core::Message<core::UserIdInformation>&>(value);
+            result = JsonSerializer<core::Message<core::UserIdInformation>>::Serialize(userDisconnectedMessage);
+          }
+          else if(value.getType() == core::MessageType::UserDealWon)
+          {
+            auto userDealWonMessage = static_cast<const core::Message<core::DealInformation>&>(value);
+            result = JsonSerializer<core::Message<core::DealInformation>>::Serialize(userDealWonMessage);
+          }
+          else
+          {
+            const auto& enumConverter = core::EnumConverter<core::MessageType>::get_const_instance();
+            throw SerializerException((boost::format("Can't serialize unsupported message '%s'.") % enumConverter.toString(value.getType()).c_str()).str());
           }
 
           return result;

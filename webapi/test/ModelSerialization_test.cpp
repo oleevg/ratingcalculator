@@ -21,7 +21,7 @@
 
 BOOST_AUTO_TEST_SUITE (JsonSerializer)
 
-  namespace transport = rating_calculator::webapi::transport;
+  namespace core = rating_calculator::core;
   namespace serialization = rating_calculator::webapi::serialization;
 
   template <class T>
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
   BOOST_AUTO_TEST_CASE(Serialize_Deserialize_equal_true)
   {
     // core::UserInformation
-    rating_calculator::core::UserInformation userInformation{12345, "user"};
+    core::UserInformation userInformation{12345, "user"};
 
     auto tree = JsSerializer<decltype(userInformation)>::Serialize(userInformation);
 
@@ -43,12 +43,12 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
       std::cout << "Serialized: " << stringstream.str() << std::endl;
     }
 
-    rating_calculator::core::UserInformation userInformationDeserialized = JsDeserializer<rating_calculator::core::UserInformation>::Parse(tree);
+    core::UserInformation userInformationDeserialized = JsDeserializer<core::UserInformation>::Parse(tree);
 
     BOOST_REQUIRE(userInformation == userInformationDeserialized);
 
-    // transport::Message<rating_calculator::core::UserInformation>
-    transport::Message<rating_calculator::core::UserInformation> message(transport::MessageType::UserRegistered, 12345, "user");
+    // core::Message<core::UserInformation>
+    core::Message<core::UserInformation> message(core::MessageType::UserRegistered, 12345, "user");
 
     tree = serialization::JsonSerializer<decltype(message)>::Serialize(message);
 
@@ -67,12 +67,12 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
   {
     boost::property_tree::ptree tree;
 
-    BOOST_REQUIRE_THROW(JsDeserializer<rating_calculator::core::UserInformation>::Parse(tree), rating_calculator::webapi::serialization::SerializerException);
+    BOOST_REQUIRE_THROW(JsDeserializer<core::UserInformation>::Parse(tree), rating_calculator::webapi::serialization::SerializerException);
   }
 
   BOOST_AUTO_TEST_CASE(Vector_Serialize_Deserialize_equal_true)
   {
-    std::vector<rating_calculator::core::UserInformation> users = {{1234, "user1"}, {12345, "user2"}};
+    std::vector<core::UserInformation> users = {{1234, "user1"}, {12345, "user2"}};
 
     auto child = JsSerializer<decltype(users)>::Serialize(users);
     boost::property_tree::ptree tree;

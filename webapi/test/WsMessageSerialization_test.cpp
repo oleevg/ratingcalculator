@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
     BOOST_REQUIRE(wsError == wsErrorDeserialized);
 
-    // transport::WsData<transport::Message<rating_calculator::core::UserInformation>>
-    transport::WsData wsData(123, std::make_shared<transport::Message<rating_calculator::core::UserInformation>>(transport::MessageType::UserRegistered, 1234, "user"));
+    // transport::WsData<core::Message<rating_calculator::core::UserInformation>>
+    transport::WsData wsData(123, std::make_shared<rating_calculator::core::Message<rating_calculator::core::UserInformation>>(rating_calculator::core::MessageType::UserRegistered, 1234, "user"));
 
     tree = serialization::JsonSerializer<decltype(wsData)>::Serialize(wsData);
 
@@ -75,8 +75,8 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
     BOOST_REQUIRE(wsData == wsDataDeserialized);
 
-    // transport::WsData<transport::Message<rating_calculator::core::DealInformation>>
-    transport::WsData wsDealInformation(124, std::make_shared<transport::Message<rating_calculator::core::DealInformation>>(transport::MessageType::UserDealWon, 1234, 777, 123.456));
+    // transport::WsData<core::Message<rating_calculator::core::DealInformation>>
+    transport::WsData wsDealInformation(124, std::make_shared<rating_calculator::core::Message<rating_calculator::core::DealInformation>>(rating_calculator::core::MessageType::UserDealWon, 1234, 777, 123.456));
 
     tree = serialization::JsonSerializer<decltype(wsDealInformation)>::Serialize(wsDealInformation);
 
