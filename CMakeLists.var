@@ -15,6 +15,7 @@ set(${project_name}_definitions )
 
 set(modules
     core
+    tempstore
     webapi
     service
     testClient

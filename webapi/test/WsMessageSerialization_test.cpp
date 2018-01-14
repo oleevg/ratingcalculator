@@ -16,6 +16,7 @@
 
 BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
+  namespace core = rating_calculator::core;
   namespace transport = rating_calculator::webapi::transport;
   namespace serialization = rating_calculator::webapi::serialization;
 
@@ -33,12 +34,16 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
     return (base && derived);
   }
 
+  template <class T>
   bool operator==(const transport::WsData& lhs, const transport::WsData& rhs)
   {
     std::cout << "WsData comparison" << std::endl;
     bool base = static_cast<const transport::WsMessage&>(lhs) == static_cast<const transport::WsMessage&>(rhs);
-    // TODO: deep comparison
-    bool derived = (lhs.getData() == rhs.getData());
+
+    auto lData = std::static_pointer_cast<core::Message <T>>(lhs.getData());
+    auto rData = std::static_pointer_cast<core::Message <T>>(rhs.getData());
+
+    bool derived = operator==<T>(*lData, *rData);
 
     return (base && derived);
   }
@@ -50,11 +55,11 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
     auto tree = serialization::JsonSerializer<transport::WsError>::Serialize(wsError);
 
-    {
-      std::stringstream stringstream;
-      boost::property_tree::write_json(stringstream, tree);
-      std::cout << "Serialized: " << stringstream.str() << std::endl;
-    }
+//    {
+//      std::stringstream stringstream;
+//      boost::property_tree::write_json(stringstream, tree);
+//      std::cout << "Serialized: " << stringstream.str() << std::endl;
+//    }
 
     auto wsErrorDeserialized = serialization::JsonDeserializer<decltype(wsError)>::Parse(tree);
 
@@ -65,11 +70,11 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
     tree = serialization::JsonSerializer<decltype(wsData)>::Serialize(wsData);
 
-    {
-      std::stringstream stringstream;
-      boost::property_tree::write_json(stringstream, tree);
-      std::cout << "Serialized: " << stringstream.str() << std::endl;
-    }
+//    {
+//      std::stringstream stringstream;
+//      boost::property_tree::write_json(stringstream, tree);
+//      std::cout << "Serialized: " << stringstream.str() << std::endl;
+//    }
 
     auto wsDataDeserialized = serialization::JsonDeserializer<decltype(wsData)>::Parse(tree);
 
@@ -80,11 +85,11 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
     tree = serialization::JsonSerializer<decltype(wsDealInformation)>::Serialize(wsDealInformation);
 
-    {
-      std::stringstream stringstream;
-      boost::property_tree::write_json(stringstream, tree);
-      std::cout << "Serialized: " << stringstream.str() << std::endl;
-    }
+//    {
+//      std::stringstream stringstream;
+//      boost::property_tree::write_json(stringstream, tree);
+//      std::cout << "Serialized: " << stringstream.str() << std::endl;
+//    }
 
     auto wsDealInformationDeserialized = serialization::JsonDeserializer<decltype(wsDealInformation)>::Parse(tree);
 

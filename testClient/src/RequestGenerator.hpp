@@ -14,7 +14,7 @@
 
 #include <core/Model.hpp>
 
-#include "UserSimulator.hpp"
+#include "TestUser.hpp"
 
 namespace rating_calculator {
 
@@ -32,7 +32,7 @@ namespace rating_calculator {
         void waitForUsersToRegister();
 
       private:
-        std::vector<UserSimulator> users;
+        std::vector<TestUser> users;
         mutable std::mutex usersMutex;
         std::condition_variable usersCondVar;
 

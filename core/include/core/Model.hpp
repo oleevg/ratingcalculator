@@ -22,7 +22,8 @@ namespace rating_calculator {
         UserRenamed,
         UserConnected,
         UserDisconnected,
-        UserDealWon
+        UserDealWon,
+        UserRelativeRating
     };
 
     class BaseMessage {
@@ -56,7 +57,7 @@ namespace rating_calculator {
     };
 
     template<class T>
-    bool operator==(const Message <T>& lhs, const Message <T>& rhs)
+    bool operator==(const core::Message <T>& lhs, const core::Message <T>& rhs)
     {
       bool base = lhs.getType() == rhs.getType();
 

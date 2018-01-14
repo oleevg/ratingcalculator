@@ -21,9 +21,8 @@ namespace rating_calculator {
 
   namespace service {
 
-
     ApplicationService::ApplicationService(int port, int period, size_t threadPoolSize):
-    protocol(3, 3)
+    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>(3, 3))
     {
       server.config.port = port;
       server.config.thread_pool_size = threadPoolSize;
@@ -38,7 +37,7 @@ namespace rating_calculator {
       echo.on_message = [selfType](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message)
       {
         std::cout << "Server: Message received" << std::endl;
-        core::BaseMessage::Ptr baseMessage = selfType->protocol.parseMessage(message, connection);
+        core::BaseMessage::Ptr baseMessage = selfType->protocol->parseMessage(message, connection);
 
         if(baseMessage->getType() == core::MessageType::UserRegistered)
         {
@@ -71,7 +70,7 @@ namespace rating_calculator {
     {
       setWsEndpoints();
 
-      protocol.start();
+      protocol->start();
 
       auto selfCopy = shared_from_this();
 
@@ -79,8 +78,8 @@ namespace rating_calculator {
         selfCopy->server.start();
       });
 
+      protocol->stop();
       serverThread.join();
-      protocol.stop();
 
       return 0;
     }

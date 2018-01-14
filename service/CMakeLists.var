@@ -14,12 +14,14 @@ set(library_type)
 set(headers
     src/Application.hpp
     src/ApplicationService.hpp
+    src/UserRatingWatcher.hpp
     )
 
 set(sources
     src/main.cpp
     src/Application.cpp
     src/ApplicationService.cpp
+    src/UserRatingWatcher.cpp
     )
 
 set(tests
@@ -31,6 +33,7 @@ set(definitions
 
 set(libraries
     ratingCalculator_core
+    ratingCalculator_tempstore
     ratingCalculator_webapi
     )
 

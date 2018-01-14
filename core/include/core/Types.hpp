@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 #include <iostream>
 
 namespace rating_calculator {
@@ -71,19 +72,56 @@ namespace rating_calculator {
       float amount;
     };
 
+    struct UserPosition {
+      UserPosition(const UserInformation& userInformation_, size_t position_, float amount_):
+      userInformation(userInformation_), position(position_), amount(amount_)
+      {}
+
+      bool operator==(const UserPosition& obj) const
+      {
+        return ((userInformation == obj.userInformation) && (position == obj.position) && (amount == obj.amount));
+      }
+
+      UserInformation userInformation;
+      size_t position;
+      float amount;
+    };
+
+
+    typedef std::vector<UserPosition> UserPositionsCollection;
+
+    struct UserRelativeRating {
+      UserRelativeRating(const UserPosition& userPosition_, const UserPositionsCollection& headPositions_,
+                         const UserPositionsCollection& highPositions_, const UserPositionsCollection& lowPositions_)
+              : userPosition(userPosition_), headPositions(headPositions_), highPositions(highPositions_),
+                lowPositions(lowPositions_)
+      {}
+
+      bool operator==(const UserRelativeRating& obj) const
+      {
+        return ((userPosition == obj.userPosition) && (headPositions == obj.headPositions) && (highPositions == obj.highPositions) && (lowPositions == obj.lowPositions));
+      }
+
+      UserPosition userPosition;
+      UserPositionsCollection headPositions;
+      UserPositionsCollection highPositions;
+      UserPositionsCollection lowPositions;
+    };
+
+    /// TMP!
     inline std::ostream& operator<<(std::ostream& out, const DealInformation& obj)
     {
-      out << "--- User id: " << obj.userId << std::endl;
-      out << "--- Timestamp: " << obj.timestamp << std::endl;
-      out << "--- Amount: " << obj.amount << std::endl;
+//      out << "--- User id: " << obj.userId << std::endl;
+//      out << "--- Timestamp: " << obj.timestamp << std::endl;
+//      out << "--- Amount: " << obj.amount << std::endl;
 
       return out;
     }
 
     inline std::ostream& operator<<(std::ostream& out, const UserInformation& obj)
     {
-      out << "--- User id: " << obj.id << std::endl;
-      out << "--- Name: " << obj.name << std::endl;
+//      out << "--- User id: " << obj.id << std::endl;
+//      out << "--- Name: " << obj.name << std::endl;
 
       return out;
     }

@@ -86,7 +86,7 @@ namespace rating_calculator {
 
       core::UserInformation user(userId, name);
 
-      users.push_back(UserSimulator(userId, name));
+      users.push_back(TestUser(userId, name));
       usersCondVar.notify_all();
 
       return std::make_shared<core::Message<core::UserInformation>>(core::MessageType::UserRegistered, user);

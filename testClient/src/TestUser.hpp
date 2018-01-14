@@ -1,12 +1,12 @@
 /*
- * UserSimulator.hpp
+ * TestUser.hpp
  *
  *  Created on: 1/8/18
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
-#ifndef RATINGCALCULATOR_USERSIMULATOR_HPP
-#define RATINGCALCULATOR_USERSIMULATOR_HPP
+#ifndef RATINGCALCULATOR_TESTUSER_HPP
+#define RATINGCALCULATOR_TESTUSER_HPP
 
 #include <string>
 
@@ -16,9 +16,9 @@ namespace rating_calculator {
 
   namespace test_client {
 
-    class UserSimulator {
+    class TestUser {
       public:
-        UserSimulator(const core::UserIdentifier& id, const std::string& name);
+        TestUser(const core::UserIdentifier& id, const std::string& name);
 
         void setConnected(bool connected);
         void changeName(const std::string& name);
@@ -34,4 +34,4 @@ namespace rating_calculator {
 }
 
 
-#endif //RATINGCALCULATOR_USERSIMULATOR_HPP
+#endif //RATINGCALCULATOR_TESTUSER_HPP

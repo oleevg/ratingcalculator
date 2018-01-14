@@ -17,12 +17,12 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
+#include <core/Model.hpp>
 #include <core/ulog.h>
 
 #include <webapi/serialization/JsonSerializerWsMessage.hpp>
 #include <webapi/serialization/JsonDeserializerWsMessage.hpp>
 
-#include "core/Model.hpp"
 #include "WsMessage.hpp"
 
 namespace rating_calculator {
@@ -33,6 +33,9 @@ namespace rating_calculator {
 
       template <class ConnectionSide>
       class WsProtocol {
+        public:
+          typedef std::shared_ptr<WsProtocol> Ptr;
+
         private:
             struct MessageData {
             public:
@@ -54,6 +57,7 @@ namespace rating_calculator {
 
         public:
           WsProtocol(size_t resendNumber = 3, int resendTimeout = 3);
+          ~WsProtocol();
 
           void start();
 

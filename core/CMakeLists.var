@@ -16,18 +16,24 @@ set(headers
     include/core/BaseException.hpp
     include/core/SystemException.hpp
     include/core/EnumConverter.hpp
+    include/core/TimeHelper.hpp
     include/core/ulog.h
     include/core/Types.hpp
+    include/core/IUserDataStore.hpp
+    include/core/IUserDealDataStore.hpp
+    include/core/IDataStoreFactory.hpp
     )
 
 set(sources
     src/BaseException.cpp
     src/SystemException.cpp
+    src/TimeHelper.cpp
     src/ulog.c
     )
 
 set(tests
     test/EnumConverter_test.cpp
+    test/TimeHelper_test.cpp
     )
 
 set(definitions

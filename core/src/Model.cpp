@@ -31,6 +31,7 @@ namespace rating_calculator {
       addConversion(MessageType::UserConnected, "user_connected");
       addConversion(MessageType::UserDealWon, "user_deal_won");
       addConversion(MessageType::UserDisconnected, "user_disconnected");
+      addConversion(MessageType::UserRelativeRating, "user_rating");
     }
 
   }

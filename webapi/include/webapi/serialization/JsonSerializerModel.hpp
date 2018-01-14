@@ -62,6 +62,35 @@ namespace rating_calculator {
         }
       };
 
+      template<>
+      struct JsonSerializer<core::UserPosition> {
+        static boost::property_tree::ptree Serialize(const core::UserPosition& value)
+        {
+          boost::property_tree::ptree result;
+
+          result.add_child("userInfo", JsonSerializer<decltype(value.userInformation)>::Serialize(value.userInformation));
+          result.add_child("position", JsonSerializer<decltype(value.position)>::Serialize(value.position));
+          result.add_child("amount", JsonSerializer<decltype(value.amount)>::Serialize(value.amount));
+
+          return result;
+        }
+      };
+
+      template<>
+      struct JsonSerializer<core::UserRelativeRating> {
+        static boost::property_tree::ptree Serialize(const core::UserRelativeRating& value)
+        {
+          boost::property_tree::ptree result;
+
+          result.add_child("userPosition", JsonSerializer<decltype(value.userPosition)>::Serialize(value.userPosition));
+          result.add_child("headPositions", JsonSerializer<decltype(value.headPositions)>::Serialize(value.headPositions));
+          result.add_child("highPositions", JsonSerializer<decltype(value.highPositions)>::Serialize(value.highPositions));
+          result.add_child("lowPositions", JsonSerializer<decltype(value.lowPositions)>::Serialize(value.lowPositions));
+
+          return result;
+        }
+      };
+
       template<class T>
       struct JsonSerializer<core::Message<T>> {
         static boost::property_tree::ptree Serialize(const core::Message<T>& value)
@@ -104,6 +133,11 @@ namespace rating_calculator {
           {
             auto userDealWonMessage = static_cast<const core::Message<core::DealInformation>&>(value);
             result = JsonSerializer<core::Message<core::DealInformation>>::Serialize(userDealWonMessage);
+          }
+          else if(value.getType() == core::MessageType::UserRelativeRating)
+          {
+            auto userRelativeRatingWonMessage = static_cast<const core::Message<core::UserRelativeRating>&>(value);
+            result = JsonSerializer<core::Message<core::UserRelativeRating>>::Serialize(userRelativeRatingWonMessage);
           }
           else
           {

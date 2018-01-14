@@ -1,38 +1,38 @@
 /*
- * UserSimulator.cpp
+ * TestUser.cpp
  *
  *  Created on: 1/8/18
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
-#include "UserSimulator.hpp"
+#include "TestUser.hpp"
 
 namespace rating_calculator {
 
   namespace test_client {
 
-    UserSimulator::UserSimulator(const core::UserIdentifier& id, const std::string& name):
+    TestUser::TestUser(const core::UserIdentifier& id, const std::string& name):
       userInformation(id, name), connected(false)
     {
 
     }
 
-    void UserSimulator::changeName(const std::string& name)
+    void TestUser::changeName(const std::string& name)
     {
       userInformation.name = name;
     }
 
-    bool UserSimulator::isConnected() const
+    bool TestUser::isConnected() const
     {
       return connected;
     }
 
-    void UserSimulator::setConnected(bool connected)
+    void TestUser::setConnected(bool connected)
     {
       this->connected = connected;
     }
 
-    const std::string& UserSimulator::getName() const
+    const std::string& TestUser::getName() const
     {
       return userInformation.name;
     }

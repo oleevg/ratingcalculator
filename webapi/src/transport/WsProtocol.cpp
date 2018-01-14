@@ -67,8 +67,7 @@ namespace rating_calculator {
       template <class ConnectionSide>
       size_t WsProtocol<ConnectionSide>::getNextOutCounter()
       {
-        //return (outCounter_++)%SIZE_MAX;
-        return (outCounter_++)%UINT8_MAX;
+        return (outCounter_++)%SIZE_MAX;
       }
 
       template <class ConnectionSide>
@@ -212,15 +211,22 @@ namespace rating_calculator {
       template<class ConnectionSide>
       void WsProtocol<ConnectionSide>::stop()
       {
-        stopped.store(true);
+        bool expected = false;
+        if(stopped.compare_exchange_strong(expected, true))
+        {
+          resendStoreThread.join();
+        }
+      }
 
-        resendStoreThread.join();
+      template<class ConnectionSide>
+      WsProtocol<ConnectionSide>::~WsProtocol()
+      {
+        stop();
       }
 
       template class WsProtocol<SimpleWeb::SocketServer<SimpleWeb::WS>>;
 
       template class WsProtocol<SimpleWeb::SocketClient<SimpleWeb::WS>>;
-
 
     }
 
