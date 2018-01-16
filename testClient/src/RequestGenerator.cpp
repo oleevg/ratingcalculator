@@ -65,7 +65,7 @@ namespace rating_calculator {
         size_t nUsers = getRegisteredUsersNumber();
 
         std::uniform_int_distribution<size_t> pickUser(0, nUsers - 1);
-        std::uniform_real_distribution<float> pickAmount(0.0, 100);
+        std::uniform_real_distribution<float> pickAmount(0.0, 100.0);
 
         size_t userId = pickUser(rg);
         float amount = pickAmount(rg);
@@ -77,9 +77,9 @@ namespace rating_calculator {
       return result;
     }
 
-    core::BaseMessage::Ptr RequestGenerator::generateUserRegistedMessage()
+    core::BaseMessage::Ptr RequestGenerator::generateUserRegisteredMessage()
     {
-      std::unique_lock<std::mutex> lck(usersMutex);
+      std::lock_guard<std::mutex> lck(usersMutex);
 
       size_t userId = users.size();
       std::string name = "user" + std::to_string(userId);
@@ -87,7 +87,10 @@ namespace rating_calculator {
       core::UserInformation user(userId, name);
 
       users.push_back(TestUser(userId, name));
-      usersCondVar.notify_all();
+
+      // Otherwise we notify before message reaches recipient
+      if(userId > 3)
+        usersCondVar.notify_all();
 
       return std::make_shared<core::Message<core::UserInformation>>(core::MessageType::UserRegistered, user);
     }

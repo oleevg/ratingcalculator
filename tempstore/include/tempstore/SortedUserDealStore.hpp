@@ -16,6 +16,8 @@
 #include <mutex>
 #include <atomic>
 
+#include <boost/noncopyable.hpp>
+
 #include <core/IDataStoreFactory.hpp>
 #include <core/Types.hpp>
 #include <core/TimeHelper.hpp>
@@ -24,33 +26,37 @@ namespace rating_calculator {
 
   namespace tempstore {
 
-    class SortedUserDealStore {
+    class SortedUserDealStore : public boost::noncopyable {
       public:
-        SortedUserDealStore(const core::IDataStoreFactory::Ptr& dataStoreFactory, core::TimeHelper::WeekDay startPeriodDay,
-                                    uint64_t periodDuration);
+        SortedUserDealStore(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+                            const core::IDataStoreFactory::Ptr& dataStoreFactory);
+
         ~SortedUserDealStore();
 
         core::UserPosition getUserPosition(const core::UserIdentifier& userIdentifier) const;
 
         core::UserPositionsCollection getHeadPositions(size_t nPositions) const;
+
         core::UserPositionsCollection
         getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
+
         core::UserPositionsCollection
         getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
 
+        void start();
         void stop();
 
       private:
-        void updatePeriodTime(const core::TimePoint& startTime);
+        void updatePeriod(const core::TimePoint& startTime);
 
       private:
-        core::TimePoint startTime;
-        core::TimePoint endTime;
-        int64_t periodDuration_;
+        core::TimePoint startTime_;
+        core::TimePoint endTime_;
+        uint64_t periodDuration_;
 
-        std::thread watcherThread;
-        std::mutex storeMutex;
-        std::atomic<bool> stopped;
+        std::thread watcherThread_;
+        std::mutex storeMutex_;
+        std::atomic<bool> stopped_;
 
         core::IDataStoreFactory::Ptr dataStoreFactory_;
     };

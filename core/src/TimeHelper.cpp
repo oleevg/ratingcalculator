@@ -23,7 +23,7 @@ namespace rating_calculator {
       std::tm* tmTime = std::gmtime(&tTime);
 
       int shiftDays = tmTime->tm_wday - static_cast<uint8_t>(weekDay);
-      shiftDays = (shiftDays > 0) ? shiftDays : shiftDays + 7;
+      shiftDays = (shiftDays >= 0) ? shiftDays : shiftDays + 7;
 
       std::tm resultTmTime = *tmTime;
       resultTmTime.tm_hour = 0;

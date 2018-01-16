@@ -15,6 +15,8 @@
 #include <condition_variable>
 #include <unordered_map>
 
+#include <boost/noncopyable.hpp>
+
 #include <core/TimeHelper.hpp>
 
 #include <tempstore/SortedUserDealStore.hpp>
@@ -29,7 +31,7 @@ namespace rating_calculator {
     typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
     typedef WsServer::Connection WsConnection;
 
-    class UserRatingWatcher {
+    class UserRatingWatcher : public boost::noncopyable {
       private:
         struct UserConnection {
             typedef std::shared_ptr<UserConnection> Ptr;
@@ -46,31 +48,37 @@ namespace rating_calculator {
         typedef std::unordered_map<core::UserIdentifier, UserConnection::Ptr> UserConnectionCollection;
 
       public:
-        UserRatingWatcher(const core::IDataStoreFactory::Ptr& dataStoreFactory, int ratingUpdateTimeout,
-                                  size_t nRatingPositions,
+        UserRatingWatcher(int ratingUpdateTimeout, size_t nRatingPositions,
+                                  const core::IDataStoreFactory::Ptr& dataStoreFactory,
                                   const webapi::transport::WsProtocol<WsServer>::Ptr& protocol);
 
         void userConnected(const core::UserIdentifier& userIdentifier,
-                                   const std::shared_ptr<WsConnection>& connection);
+                           const std::shared_ptr<WsConnection>& connection);
 
         void userDisconnected(const core::UserIdentifier& userIdentifier);
 
+        void start();
+
         void stop();
+
+      private:
+        void sendUserRelativeRating(const core::UserIdentifier& userIdentifier,
+                                    const std::weak_ptr<WsConnection>& connection) const;
 
       private:
         size_t nRatingPositions_;
         int ratingUpdateTimeout_;
         webapi::transport::WsProtocol<WsServer>::Ptr protocol_;
 
-        std::thread ratingUpdateThread;
-        std::mutex userConnectionsMutex;
-        std::condition_variable userConnectionsCondVar;
-        UserConnectionCollection userConnections;
+        std::thread ratingUpdateThread_;
+        std::mutex userConnectionsMutex_;
+        std::condition_variable userConnectionsCondVar_;
+        UserConnectionCollection userConnections_;
 
-        tempstore::SortedUserDealStore sortedDealStore;
+        tempstore::SortedUserDealStore sortedDealStore_;
         core::IDataStoreFactory::Ptr dataStoreFactory_;
 
-        std::atomic<bool> stopped;
+        std::atomic<bool> stopped_;
     };
 
 

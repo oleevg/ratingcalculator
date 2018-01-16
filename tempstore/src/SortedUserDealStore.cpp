@@ -16,43 +16,28 @@ namespace rating_calculator {
 
   namespace tempstore {
 
-    SortedUserDealStore::SortedUserDealStore(const core::IDataStoreFactory::Ptr& dataStoreFactory, core::TimeHelper::WeekDay startPeriodDay,
-                                                 uint64_t periodDuration) :
-      dataStoreFactory_(dataStoreFactory), periodDuration_(periodDuration), stopped(false)
+    SortedUserDealStore::SortedUserDealStore(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+                                             const core::IDataStoreFactory::Ptr& dataStoreFactory) :
+            periodDuration_(periodDuration), stopped_(false), dataStoreFactory_(dataStoreFactory)
     {
-      updatePeriodTime(core::TimeHelper::getPreviousWeekDay(std::chrono::system_clock::now(), startPeriodDay));
+      updatePeriod(core::TimeHelper::getPreviousWeekDay(std::chrono::system_clock::now(), startPeriodDay));
 
       auto& userDealDataStore = dataStoreFactory_->createUserDealDataStore();
-      userDealDataStore.addDealAddedSlot([this](const core::DealInformation& dealInformation)
-                                         {
-                                           if(dealInformation.timestamp < std::chrono::system_clock::to_time_t(startTime))
-                                           {
-                                              mdebug_info("timestamp < startTime");
-                                           }
-                                           else if(dealInformation.timestamp > std::chrono::system_clock::to_time_t(endTime))
-                                           {
-                                             mdebug_info("timestamp > startTime");
-                                           }
-                                           else
-                                           {
-                                             // TODO: add
-                                           }
-                                         });
-
-      watcherThread = std::thread([this]()
-                                  {
-                                    while (!stopped.load())
-                                    {
-                                      std::this_thread::sleep_until(endTime);
-
-                                      std::lock_guard<std::mutex> lck(storeMutex);
-                                      // TODO: clear store
-                                      mdebug_info("Sorted deal table cleared.");
-
-                                      updatePeriodTime(endTime);
-                                      mdebug_info("Updated end ");
-                                    }
-                                  });
+      userDealDataStore.addDealAddedSlot([this](const core::DealInformation& dealInformation) {
+        if (dealInformation.timestamp < std::chrono::system_clock::to_time_t(startTime_))
+        {
+          mdebug_info("timestamp < startTime");
+        }
+        else if (dealInformation.timestamp > std::chrono::system_clock::to_time_t(endTime_))
+        {
+          mdebug_info("timestamp > startTime");
+        }
+        else
+        {
+          // TODO: add
+          mdebug_info("Deal added slot invoked.");
+        }
+      });
     }
 
     SortedUserDealStore::~SortedUserDealStore()
@@ -83,21 +68,41 @@ namespace rating_calculator {
       return core::UserPosition(userDataStore.getUserInformation(userIdentifier), 0, 0);
     }
 
-    void SortedUserDealStore::updatePeriodTime(const core::TimePoint& start)
+    void SortedUserDealStore::updatePeriod(const core::TimePoint& startTime)
     {
-      startTime = start;
-      endTime += std::chrono::seconds(periodDuration_);
+      startTime_ = startTime;
+      endTime_ = startTime + std::chrono::seconds(periodDuration_);
+      mdebug_info("Updated rating period: startTime = %d, endTime = %d, now = %d.", std::chrono::system_clock::to_time_t(startTime_), std::chrono::system_clock::to_time_t(endTime_), std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+    }
+
+    void SortedUserDealStore::start()
+    {
+      if(!stopped_.load())
+      {
+        watcherThread_ = std::thread([this]() {
+          while (!stopped_.load())
+          {
+            std::this_thread::sleep_until(endTime_);
+
+            std::lock_guard<std::mutex> lck(storeMutex_);
+            // TODO: clear store
+            mdebug_info("Cleared sorted deal table.");
+
+            updatePeriod(endTime_);
+          }
+        });
+      }
     }
 
     void SortedUserDealStore::stop()
     {
       bool expected = false;
-      if(stopped.compare_exchange_strong(expected, true))
+      if (stopped_.compare_exchange_strong(expected, true))
       {
-        watcherThread.join();
+        watcherThread_.join();
       }
     }
 
   }
 
-  }
+}

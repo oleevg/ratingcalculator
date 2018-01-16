@@ -25,7 +25,7 @@ namespace rating_calculator {
         RequestGenerator(size_t usersNumber);
 
         core::BaseMessage::Ptr generateUserCommonMessage();
-        core::BaseMessage::Ptr generateUserRegistedMessage();
+        core::BaseMessage::Ptr generateUserRegisteredMessage();
 
         size_t getRegisteredUsersNumber() const;
 

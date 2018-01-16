@@ -75,7 +75,7 @@ namespace rating_calculator {
       {
         WsData wsData(getNextOutCounter(), message);
 
-        mdebug_notice("Send data message: %d (%x).", wsData.getId(), core::ThreadHelper::threadIdToInt());
+        mdebug_notice("Send data message: '%d'.", wsData.getId());
         sendMessageInternal<ConnectionSide>(connection, wsData);
 
         addToResendStore(connection, std::make_shared<MessageData>(connection, wsData));
@@ -93,13 +93,13 @@ namespace rating_calculator {
         boost::property_tree::ptree tree;
         boost::property_tree::read_json(stringStream, tree);
 
-        mdebug_notice("Received message: '%s' (%x).", stringStream.str().c_str(), core::ThreadHelper::threadIdToInt());
+        mdebug_notice("Received message: '%s'.", stringStream.str().c_str());
 
         WsMessage::Ptr wsMessage = serialization::JsonDeserializer<WsMessage>::Parse(tree);
 
         if(wsMessage->getType() == WsMessageType::Ack)
         {
-          mdebug_notice("Received ACK for message: '%d' (%x).", wsMessage->getId(), core::ThreadHelper::threadIdToInt());
+          mdebug_notice("Received ACK for message: '%d'.", wsMessage->getId());
           removeFromResendStore(wsMessage->getId());
         }
         else if(wsMessage->getType() == WsMessageType::Data)
@@ -107,10 +107,10 @@ namespace rating_calculator {
           auto wsData = std::static_pointer_cast<WsData>(wsMessage);
           result = wsData->getData();
 
-          mdebug_notice("Received data message: '%s' (%x).", core::EnumConverter<core::MessageType>::get_const_instance().toString(result->getType()).c_str(), core::ThreadHelper::threadIdToInt());
+          mdebug_notice("Received data message: '%s'.", core::EnumConverter<core::MessageType>::get_const_instance().toString(result->getType()).c_str());
 
           WsAck wsAck(wsMessage->getId());
-          mdebug_notice("Going to send ACK for: %d.", wsMessage->getId());
+          mdebug_notice("Going to send ACK for: '%d'.", wsMessage->getId());
           sendMessageInternal<ConnectionSide>(connection, wsAck);
         }
 
@@ -118,8 +118,9 @@ namespace rating_calculator {
       }
 
       template<class ConnectionSide>
-      void WsProtocol<ConnectionSide>::addToResendStore(const std::shared_ptr<typename ConnectionSide::Connection>& connection,
-                                        const typename WsProtocol::MessageData::Ptr& messageData)
+      void WsProtocol<ConnectionSide>::addToResendStore(
+              const std::shared_ptr<typename ConnectionSide::Connection>& connection,
+              const typename WsProtocol::MessageData::Ptr& messageData)
       {
         std::lock_guard<std::mutex> lck(resendStoreMutex);
         resendStore.insert({messageData->message.getId(), messageData});
@@ -137,75 +138,76 @@ namespace rating_calculator {
       void WsProtocol<ConnectionSide>::removeFromResendStoreUnsafe(WsMessageIdentifier messageId)
       {
         size_t erasedMessages = resendStore.erase(messageId);
-        mdebug_notice("Going to remove message with id %d from resend store.", messageId, core::ThreadHelper::threadIdToInt());
+        mdebug_notice("Going to remove message with id '%d' from resend store.", messageId, core::ThreadHelper::threadIdToInt());
 
         if(erasedMessages != 1)
         {
-          mdebug_warn("No such message in resend store with id: %d.", messageId);
+          mdebug_warn("No such message in resend store with id: '%d'.", messageId);
         }
       }
 
       template<class ConnectionSide>
       void WsProtocol<ConnectionSide>::start()
       {
-        resendStoreThread = std::thread([this]()
-                                   {
-                                     while(!stopped.load())
-                                     {
-                                       std::unique_lock<std::mutex> lck(resendStoreMutex);
+        resendStoreThread = std::thread([this]() {
+          while (!stopped.load())
+          {
+            std::unique_lock<std::mutex> lck(resendStoreMutex);
 
-                                       while (resendStore.empty())
-                                       {
-                                         resendStoreCondVar.wait(lck);
-                                       }
+            while (resendStore.empty())
+            {
+              resendStoreCondVar.wait(lck);
+            }
 
-                                       std::list<WsMessageIdentifier> messagesToRemove;
-                                       mdebug_notice("Resend store size: %d.", resendStore.size());
-                                       for (auto& resendStoreItem : resendStore)
-                                       {
-                                         auto messageId = resendStoreItem.first;
-                                         MessageData& messageData = *resendStoreItem.second;
+            std::list<WsMessageIdentifier> messagesToRemove;
+            mdebug_notice("Resend store size: '%d'.", resendStore.size());
+            for (auto& resendStoreItem : resendStore)
+            {
+              auto messageId = resendStoreItem.first;
+              MessageData& messageData = *resendStoreItem.second;
 
-                                         if (messageData.resendCounter < resendNumber_)
-                                         {
-                                           if(messageData.lastSentTimePoint + std::chrono::seconds(resendTimeout_) < std::chrono::system_clock::now())
-                                           {
-                                             auto connection = messageData.connection.lock();
-                                             if (connection)
-                                             {
-                                               mdebug_notice("Resend message with id: %d.", messageId);
-                                               sendMessageInternal<ConnectionSide>(connection, messageData.message);
-                                               ++messageData.resendCounter;
-                                               messageData.lastSentTimePoint = std::chrono::system_clock::now();
-                                             }
-                                             else
-                                             {
-                                               messagesToRemove.push_back(messageId);
-                                               mdebug_warn("Going to remove message '%d' from resend store as its client disconnected.", messageId);
-                                             }
-                                           }
-                                           else
-                                           {
-                                             continue;
-                                           }
-                                         }
-                                         else
-                                         {
-                                           messagesToRemove.push_back(messageId);
-                                           mdebug_warn("Going to remove message '%d' from resend store as its resend counter gone.", messageId);
-                                         }
-                                       }
+              if (messageData.resendCounter < resendNumber_)
+              {
+                if (messageData.lastSentTimePoint + std::chrono::seconds(resendTimeout_) <
+                    std::chrono::system_clock::now())
+                {
+                  auto connection = messageData.connection.lock();
+                  if (connection)
+                  {
+                    mdebug_notice("Resend message with id: '%d'.", messageId);
+                    sendMessageInternal<ConnectionSide>(connection, messageData.message);
+                    ++messageData.resendCounter;
+                    messageData.lastSentTimePoint = std::chrono::system_clock::now();
+                  }
+                  else
+                  {
+                    messagesToRemove.push_back(messageId);
+                    mdebug_warn("Going to remove message '%d' from resend store as its client disconnected.",
+                                messageId);
+                  }
+                }
+                else
+                {
+                  continue;
+                }
+              }
+              else
+              {
+                messagesToRemove.push_back(messageId);
+                mdebug_warn("Going to remove message '%d' from resend store as its resend counter gone.", messageId);
+              }
+            }
 
-                                       for(auto messageId : messagesToRemove)
-                                       {
-                                         removeFromResendStoreUnsafe(messageId);
-                                       }
+            for (auto messageId : messagesToRemove)
+            {
+              removeFromResendStoreUnsafe(messageId);
+            }
 
-                                       lck.unlock();
+            lck.unlock();
 
-                                       std::this_thread::sleep_for(std::chrono::seconds(resendTimeout_));
-                                     }
-                                   });
+            std::this_thread::sleep_for(std::chrono::seconds(resendTimeout_));
+          }
+        });
       }
 
       template<class ConnectionSide>

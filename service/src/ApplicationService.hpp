@@ -15,6 +15,8 @@
 #include <webapi/websockets/server_ws.hpp>
 #include <webapi/transport/WsProtocol.hpp>
 
+#include "UserRatingWatcher.hpp"
+
 namespace rating_calculator {
 
   namespace service {
@@ -35,6 +37,9 @@ namespace rating_calculator {
       private:
         WsServer server;
         webapi::transport::WsProtocol<WsServer>::Ptr protocol;
+
+        core::IDataStoreFactory::Ptr dataStoreFactory;
+        UserRatingWatcher userRatingWatcher;
     };
 
   }

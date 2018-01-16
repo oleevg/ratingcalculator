@@ -10,10 +10,13 @@
 #include <string>
 #include <iostream>
 
+#include <core/Types.hpp>
+#include <core/BaseException.hpp>
 #include <core/ulog.h>
 
+#include <tempstore/DataStoreFactory.hpp>
+
 #include <webapi/transport/WsProtocol.hpp>
-#include <core/Types.hpp>
 
 #include "ApplicationService.hpp"
 
@@ -22,7 +25,7 @@ namespace rating_calculator {
   namespace service {
 
     ApplicationService::ApplicationService(int port, int period, size_t threadPoolSize):
-    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>(3, 3))
+    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>(3, 3)), dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()), userRatingWatcher(30, 10, dataStoreFactory, protocol)
     {
       server.config.port = port;
       server.config.thread_pool_size = threadPoolSize;
@@ -36,22 +39,63 @@ namespace rating_calculator {
 
       echo.on_message = [selfType](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message)
       {
-        std::cout << "Server: Message received" << std::endl;
-        core::BaseMessage::Ptr baseMessage = selfType->protocol->parseMessage(message, connection);
+        try
+        {
+          core::BaseMessage::Ptr baseMessage = selfType->protocol->parseMessage(message, connection);
 
-        if(baseMessage->getType() == core::MessageType::UserRegistered)
-        {
-          auto userRegisteredMessage = std::static_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
+          if (!baseMessage)
+          {
+            return;
+          }
+
+          auto& userDataStore = selfType->dataStoreFactory->createUserDataStore();
+          auto& userDealDataStore = selfType->dataStoreFactory->createUserDealDataStore();
+
+          if (baseMessage->getType() == core::MessageType::UserRegistered)
+          {
+            auto userRegisteredMessage = std::static_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
+            userDataStore.addUser(userRegisteredMessage->getData());
+          }
+          else if (baseMessage->getType() == core::MessageType::UserRenamed)
+          {
+            auto userRenamedMessage = std::static_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
+            userDataStore.renameUser(userRenamedMessage->getData().id, userRenamedMessage->getData().name);
+          }
+          else if (baseMessage->getType() == core::MessageType::UserConnected)
+          {
+            auto userConnectedMessage = std::static_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
+            selfType->userRatingWatcher.userConnected(userConnectedMessage->getData().id, connection);
+          }
+          else if (baseMessage->getType() == core::MessageType::UserDisconnected)
+          {
+            auto userDisconnectedMessage = std::static_pointer_cast<core::Message<core::UserIdInformation>>(
+                    baseMessage);
+            selfType->userRatingWatcher.userDisconnected(userDisconnectedMessage->getData().id);
+          }
+          else if (baseMessage->getType() == core::MessageType::UserDealWon)
+          {
+            auto userDealWonMessage = std::static_pointer_cast<core::Message<core::DealInformation>>(baseMessage);
+            userDealDataStore.addDeal(userDealWonMessage->getData());
+          }
+          else
+          {
+            const auto& enumConverter = core::EnumConverter<core::MessageType>::get_const_instance();
+            mdebug_warn("Skip unsupported message type '%s' processing.",
+                        enumConverter.toString(baseMessage->getType()).c_str());
+          }
         }
-        else if(baseMessage->getType() == core::MessageType::UserConnected)
+        catch(const core::BaseException& exc)
         {
-          auto userConnectedMessage = std::static_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
+          mdebug_error("%s", exc.what());
+        }
+        catch(const std::exception& exc)
+        {
+          mdebug_error("Unknown error occurred: %s", exc.what());
         }
 
       };
 
       echo.on_open = [](std::shared_ptr<WsServer::Connection> connection) {
-        std::cout << "Server: Opened connection " << connection.get() << std::endl;
         mdebug_info("Client connected: %s:%d (0x%x)", connection->remote_endpoint_address().c_str(), connection->remote_endpoint_port(), connection.get());
       };
 
@@ -61,8 +105,9 @@ namespace rating_calculator {
       };
 
       // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-      echo.on_error = [](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
+      echo.on_error = [selfType](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
         mdebug_error("Error in connection 0x%x. Error: %s (%d).", connection.get(), ec.message().c_str(), ec);
+        selfType->server.stop();
       };
     }
 
@@ -71,6 +116,7 @@ namespace rating_calculator {
       setWsEndpoints();
 
       protocol->start();
+      userRatingWatcher.start();
 
       auto selfCopy = shared_from_this();
 
@@ -78,8 +124,9 @@ namespace rating_calculator {
         selfCopy->server.start();
       });
 
-      protocol->stop();
       serverThread.join();
+      userRatingWatcher.stop();
+      protocol->stop();
 
       return 0;
     }

@@ -15,71 +15,88 @@ namespace rating_calculator {
 
   namespace service {
 
-    const size_t secondsInDay = 24*3600;
+    const size_t secondsInWeek = 7*24*3600;
+    const size_t testPeriod = 30;
 
     UserRatingWatcher::UserConnection::UserConnection(const core::UserIdentifier& _userIdentifier,
                                                       const std::shared_ptr<WsConnection>& _connection) :
             userIdentifier(_userIdentifier), connection(_connection)
     {}
 
-    UserRatingWatcher::UserRatingWatcher(const core::IDataStoreFactory::Ptr& dataStoreFactory, int ratingUpdateTimeout,
-                                         size_t nRatingPositions,
+    UserRatingWatcher::UserRatingWatcher(int ratingUpdateTimeout, size_t nRatingPositions,
+                                         const core::IDataStoreFactory::Ptr& dataStoreFactory,
                                          const webapi::transport::WsProtocol<WsServer>::Ptr& protocol)
-            : dataStoreFactory_(dataStoreFactory), ratingUpdateTimeout_(ratingUpdateTimeout),
-              nRatingPositions_(nRatingPositions), protocol_(protocol), stopped(false),
-              sortedDealStore(dataStoreFactory, core::TimeHelper::WeekDay::Monday, secondsInDay)
+            : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions),
+              dataStoreFactory_(dataStoreFactory),
+              protocol_(protocol), stopped_(false),
+              sortedDealStore_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
+    {}
+
+    void UserRatingWatcher::start()
     {
-      ratingUpdateThread = std::thread([this]()
-                                       {
-                                         while(!stopped.load())
-                                         {
-                                           std::unique_lock<std::mutex> lck(userConnectionsMutex);
-                                           while (userConnections.empty())
-                                           {
-                                             userConnectionsCondVar.wait(lck);
-                                           }
+      sortedDealStore_.start();
 
-                                           for (const auto& item : userConnections)
-                                           {
-                                             auto& userConnection = item.second;
-                                             if(userConnection->connected.load())
-                                             {
-                                               auto connection = userConnection->connection.lock();
-                                               if(!connection)
-                                               {
-                                                 mdebug_error("Found connected user '%d' with unspecified connection.", userConnection->userIdentifier);
-                                                 continue;
-                                               }
+      if(!stopped_.load())
+      {
+        ratingUpdateThread_ = std::thread([this]() {
+          while (!stopped_.load())
+          {
+            mdebug_info("Going to update users ratings.");
+            std::unique_lock<std::mutex> lck(userConnectionsMutex_);
+            while (userConnections_.empty())
+            {
+              userConnectionsCondVar_.wait(lck);
+            }
 
-                                               auto userPosition = sortedDealStore.getUserPosition(userConnection->userIdentifier);
-                                               auto headPositions = sortedDealStore.getHeadPositions(nRatingPositions_);
-                                               auto highPositions = sortedDealStore.getHighPositions(nRatingPositions_,
-                                                                                                     userConnection->userIdentifier);
-                                               auto lowPositions = sortedDealStore.getLowPositions(nRatingPositions_,
-                                                                                                   userConnection->userIdentifier);
+            mdebug_info("UserConnections.size()=%d.", userConnections_.size());
+            for (const auto& item : userConnections_)
+            {
+              auto& userConnection = item.second;
+              if (userConnection->connected.load())
+              {
+                mdebug_info("User '%d' connected.", userConnection->userIdentifier);
+                auto connection = userConnection->connection.lock();
+                if (!connection)
+                {
+                  mdebug_error("Found connected user '%d' with unspecified connection.",
+                               userConnection->userIdentifier);
+                  continue;
+                }
 
-                                               core::UserRelativeRating userRelativeRating(userPosition, headPositions, highPositions, lowPositions);
+                sendUserRelativeRating(userConnection->userIdentifier, userConnection->connection);
+              }
+            }
 
-                                               auto message = std::make_shared<core::Message<core::UserRelativeRating>>(core::MessageType::UserRelativeRating, userRelativeRating);
-                                               protocol_->sendMessage(message, connection);
-                                             }
-                                           }
+            lck.unlock();
+            std::this_thread::sleep_for(std::chrono::seconds(ratingUpdateTimeout_));
+          }
+        });
+      }
+    }
 
-                                           lck.unlock();
-                                           std::this_thread::sleep_for(std::chrono::seconds(ratingUpdateTimeout_));
-                                         }
-                                       });
-
+    void UserRatingWatcher::stop()
+    {
+      bool expected = false;
+      if(stopped_.compare_exchange_strong(expected, true))
+      {
+        sortedDealStore_.stop();
+        ratingUpdateThread_.join();
+      }
     }
 
     void UserRatingWatcher::userConnected(const core::UserIdentifier& userIdentifier, const std::shared_ptr<WsConnection>& connection)
     {
-      auto iter = userConnections.find(userIdentifier);
-      if(iter == userConnections.end())
-      {
-        mdebug_info("User connected first time: %d.", userIdentifier);
+      std::lock_guard<std::mutex> lck(userConnectionsMutex_);
 
-        userConnections.insert({userIdentifier, std::make_shared<UserConnection>(userIdentifier, connection)});
+      auto iter = userConnections_.find(userIdentifier);
+      if(iter == userConnections_.end())
+      {
+        mdebug_info("New user connected: %d.", userIdentifier);
+
+        auto userConnection = std::make_shared<UserConnection>(userIdentifier, connection);
+        iter = userConnections_.insert({userIdentifier, userConnection}).first;
+
+        userConnectionsCondVar_.notify_one();
       }
       else
       {
@@ -91,12 +108,16 @@ namespace rating_calculator {
         iter->second->connected.store(true);
         iter->second->connection = connection;
       }
+
+      sendUserRelativeRating(userIdentifier, iter->second->connection);
     }
 
     void UserRatingWatcher::userDisconnected(const core::UserIdentifier& userIdentifier)
     {
-      auto iter = userConnections.find(userIdentifier);
-      if(iter == userConnections.end())
+      std::lock_guard<std::mutex> lck(userConnectionsMutex_);
+
+      auto iter = userConnections_.find(userIdentifier);
+      if(iter == userConnections_.end())
       {
         mdebug_warn("Not connected user disconnected: %d.", userIdentifier);
       }
@@ -108,18 +129,32 @@ namespace rating_calculator {
         }
 
         iter->second->connected.store(false);
-        //iter->second->connection.store(nullptr);
+        iter->second->connection.reset();
       }
     }
 
-    void UserRatingWatcher::stop()
+    void UserRatingWatcher::sendUserRelativeRating(const core::UserIdentifier& userIdentifier,
+                                                   const std::weak_ptr<WsConnection>& connection) const
     {
-      bool expected = false;
-      if(stopped.compare_exchange_strong(expected, true))
+      auto userConnection = connection.lock();
+      if(!userConnection)
       {
-        sortedDealStore.stop();
-        ratingUpdateThread.join();
+        mdebug_warn("Can't send user's rating as its connection gone.");
+        return;
       }
+
+      mdebug_info("Going to send rating information for user: %d.", userIdentifier);
+
+      auto userPosition = sortedDealStore_.getUserPosition(userIdentifier);
+      auto headPositions = sortedDealStore_.getHeadPositions(nRatingPositions_);
+      auto highPositions = sortedDealStore_.getHighPositions(nRatingPositions_, userIdentifier);
+      auto lowPositions = sortedDealStore_.getLowPositions(nRatingPositions_, userIdentifier);
+
+      core::UserRelativeRating userRelativeRating (userPosition, headPositions, highPositions, lowPositions);
+
+      auto message = std::make_shared<core::Message<core::UserRelativeRating>>(
+              core::MessageType::UserRelativeRating, userRelativeRating);
+      protocol_->sendMessage(message, userConnection);
     }
 
   }
