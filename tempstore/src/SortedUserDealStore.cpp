@@ -22,7 +22,7 @@ namespace rating_calculator {
     {
       updatePeriod(core::TimeHelper::getPreviousWeekDay(std::chrono::system_clock::now(), startPeriodDay));
 
-      auto& userDealDataStore = dataStoreFactory_->createUserDealDataStore();
+      auto& userDealDataStore = dataStoreFactory_->getUserDealDataStore();
       userDealDataStore.addDealAddedSlot([this](const core::DealInformation& dealInformation) {
         addDeal(dealInformation);
       });
@@ -38,7 +38,7 @@ namespace rating_calculator {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
 
-      auto& userDataStore = dataStoreFactory_->createUserDataStore();
+      auto& userDataStore = dataStoreFactory_->getUserDataStore();
       auto userRatingCollection = sortedDealContainer_.getHeadPositions(nPositions);
 
       for (const auto& userRating : userRatingCollection)
@@ -55,7 +55,7 @@ namespace rating_calculator {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
 
-      auto& userDataStore = dataStoreFactory_->createUserDataStore();
+      auto& userDataStore = dataStoreFactory_->getUserDataStore();
 
       std::lock_guard<std::mutex> lck(storeMutex_);
       auto userRatingCollection = sortedDealContainer_.getHighPositions(userIdentifier, nPositions);
@@ -74,7 +74,7 @@ namespace rating_calculator {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
 
-      auto& userDataStore = dataStoreFactory_->createUserDataStore();
+      auto& userDataStore = dataStoreFactory_->getUserDataStore();
 
       std::lock_guard<std::mutex> lck(storeMutex_);
       auto userRatingCollection = sortedDealContainer_.getLowPositions(userIdentifier, nPositions);
@@ -89,7 +89,7 @@ namespace rating_calculator {
 
     core::UserPosition SortedUserDealStore::getUserPosition(const core::UserIdentifier& userIdentifier) const
     {
-      auto& userDataStore = dataStoreFactory_->createUserDataStore();
+      auto& userDataStore = dataStoreFactory_->getUserDataStore();
 
       std::lock_guard<std::mutex> lck(storeMutex_);
 

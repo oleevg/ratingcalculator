@@ -17,6 +17,9 @@ namespace rating_calculator {
 
   namespace core {
 
+    /**
+     * @brief Supported messages types.
+     */
     enum class MessageType : uint8_t {
         UserRegistered = 0,
         UserRenamed,
@@ -26,6 +29,9 @@ namespace rating_calculator {
         UserRelativeRating
     };
 
+    /**
+     * @brief Base class for model messages.
+     */
     class BaseMessage {
       public:
         typedef std::shared_ptr<BaseMessage> Ptr;
@@ -40,6 +46,10 @@ namespace rating_calculator {
         MessageType type_;
     };
 
+    /**
+     * @brief Specific model message type.
+     * @tparam T Custom type used as payload inside message.
+     */
     template<class T>
     class Message : public BaseMessage {
       public:

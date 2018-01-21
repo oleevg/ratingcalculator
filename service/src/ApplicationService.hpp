@@ -21,6 +21,9 @@ namespace rating_calculator {
 
   namespace service {
 
+    /**
+     * @brief The service class describing the application life cycle.
+     */
     class ApplicationService : public std::enable_shared_from_this<ApplicationService>, boost::noncopyable{
         typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
 
@@ -28,7 +31,18 @@ namespace rating_calculator {
         typedef std::shared_ptr<ApplicationService> Ptr;
 
       public:
+        /**
+         * @brief ctor
+         * @param port Port number to run server's listener on.
+         * @param period User rating update period in seconds.
+         * @param threadPoolSize The service's thread pool size.
+         */
         ApplicationService(int port, int period, size_t threadPoolSize);
+
+        /**
+         * @brief Start the application life cycle.
+         * @return The applications return code.
+         */
         int run();
 
       private:

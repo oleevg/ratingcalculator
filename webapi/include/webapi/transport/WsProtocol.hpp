@@ -31,6 +31,10 @@ namespace rating_calculator {
 
     namespace transport {
 
+      /**
+       * @brief Class describing application protocol used above web sockets communication.
+       * @tparam ConnectionSide Server or client type going from SimpleWebSocket project.
+       */
       template <class ConnectionSide>
       class WsProtocol {
         public:
@@ -56,16 +60,38 @@ namespace rating_calculator {
           typedef std::unordered_map<WsMessageIdentifier, typename MessageData::Ptr> ResendMessageStore;
 
         public:
+          /**
+           * @brief ctor
+           * @param resendNumber Number of attempts to send a packet if it is not acknowledged.
+           * @param resendTimeout Timeout between resend attempts.
+           */
           WsProtocol(size_t resendNumber = 3, int resendTimeout = 3);
           ~WsProtocol();
 
+          /**
+           * @brief Starts the protocol thread that handles resend messages queue.
+           */
           void start();
 
+          /**
+           * @brief Stops the resend messages queue thread.
+           */
           void stop();
 
+          /**
+           * @brief Sends the protocol message to the client.
+           * @param message Message to be send.
+           * @param connection Client' connection to send to.
+           */
           void sendMessage(const core::BaseMessage::Ptr& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 
 
+          /**
+           * @brief Parses received message to obtain protocol specific one.
+           * @param message Received message form Web Socket layer.
+           * @param connection Client's connection.
+           * @return Custom message or nullptr if protocol service message was received.
+           */
           core::BaseMessage::Ptr parseMessage(const std::shared_ptr<typename ConnectionSide::Message> message,
                                                   const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 

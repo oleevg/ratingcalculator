@@ -16,6 +16,9 @@ namespace rating_calculator {
 
     namespace serialization {
 
+      /**
+       * @brief Serializer specific exception type.
+       */
       class SerializerException : public core::BaseException {
         public:
           SerializerException(const std::string& errorMessage):

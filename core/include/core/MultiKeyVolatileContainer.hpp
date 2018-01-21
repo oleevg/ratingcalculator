@@ -21,13 +21,25 @@ namespace rating_calculator {
 
   namespace core {
 
+    /**
+     * @brief Multiple keys container optimized for updates for the second key.
+     * @tparam AccessKey The first key type with complexity O(1) for access operations.
+     * @tparam SortKey The second key type with complexity ~ O(ln(N)) for access operations.
+     * @tparam Value Custom type to be stored in container.
+     * @tparam accessKey Custom type public field pointer used as access key.
+     * @tparam sortKey Custom type public field pointer used as sort key.
+     * @tparam Modify A binary function object type describing data modification during update operations.
+     * @tparam Hash A unary function object type describing hashing.
+     * @tparam Pred A binary predicate describing items equality.
+     * @tparam Comp A binary predicate describing sorted items ordering.
+     */
     template <class AccessKey, class SortKey, class Value, AccessKey Value::*accessKey, SortKey Value::*sortKey, class Modify = std::plus<SortKey>, class Hash = std::hash<AccessKey>, class Pred = std::equal_to<AccessKey>, class Comp = std::greater<SortKey>>
     class MultiKeyVolatileContainer {
         typedef std::shared_ptr<Value> ValuePtr;
 
       public:
         typedef std::vector<ValuePtr> SortContainer;
-        typedef std::unordered_map<AccessKey, ValuePtr> AccessContainer;
+        typedef std::unordered_map<AccessKey, ValuePtr, Hash, Pred> AccessContainer;
 
       public:
         struct PositionedData {

@@ -25,7 +25,7 @@ namespace rating_calculator {
   namespace service {
 
     ApplicationService::ApplicationService(int port, int period, size_t threadPoolSize):
-    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>(3, 3)), dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()), userRatingWatcher(30, 10, dataStoreFactory, protocol)
+    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>(3, 3)), dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()), userRatingWatcher(period, 10, dataStoreFactory, protocol)
     {
       server.config.port = port;
       server.config.thread_pool_size = threadPoolSize;
@@ -48,8 +48,8 @@ namespace rating_calculator {
             return;
           }
 
-          auto& userDataStore = selfType->dataStoreFactory->createUserDataStore();
-          auto& userDealDataStore = selfType->dataStoreFactory->createUserDealDataStore();
+          auto& userDataStore = selfType->dataStoreFactory->getUserDataStore();
+          auto& userDealDataStore = selfType->dataStoreFactory->getUserDealDataStore();
 
           if (baseMessage->getType() == core::MessageType::UserRegistered)
           {

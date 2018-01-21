@@ -17,6 +17,9 @@ namespace rating_calculator {
 
   namespace core {
 
+    /**
+     * @brief Factory class providing access to core interfaces implementations.
+     */
     class IDataStoreFactory {
       public:
         typedef std::shared_ptr<IDataStoreFactory> Ptr;
@@ -24,8 +27,17 @@ namespace rating_calculator {
       public:
         virtual ~IDataStoreFactory() = default;
 
-        virtual IUserDataStore& createUserDataStore() = 0;
-        virtual IUserDealDataStore& createUserDealDataStore() = 0;
+        /**
+         * @brief Get user data store implementation.
+         * @return User data store instance.
+         */
+        virtual IUserDataStore& getUserDataStore() = 0;
+
+        /**
+         * @brief Get users deal data store implementation.
+         * @return Users deal data store instance.
+         */
+        virtual IUserDealDataStore& getUserDealDataStore() = 0;
     };
 
   }

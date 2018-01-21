@@ -19,6 +19,10 @@ namespace rating_calculator {
 
   namespace core {
 
+    /**
+     * @brief Class responsible for Enum to string conversion.
+     * @tparam T Specific Enum type to specify conversions for.
+     */
     template<class T>
     class EnumConverter : public boost::serialization::singleton<EnumConverter<T> > {
         struct StringInCaseLess {
@@ -32,18 +36,37 @@ namespace rating_calculator {
         typedef std::map<T, std::string> EnumToString;
         typedef std::map<std::string, T, StringInCaseLess> StringToEnum;
 
+        /**
+         * @brief ctor.
+         */
         EnumConverter();
 
+        /**
+         * @brief Adds new enum to string conversion.
+         * @param key Enum value to specify conversion for.
+         * @param value String representation.
+         */
         void addConversion(const T& key, const std::string& value)
         {
           enumToString.insert({key, value});
           stringToEnum.insert({value, key});
         }
+
+        /**
+         * @brief Provides string representation for enum value.
+         * @param key Enum value to get conversion for.
+         * @return Enum value string representation.
+         */
         const std::string& toString(const T& key) const
         {
           return enumToString.at(key);
         }
 
+        /**
+         * @brief Provides enum type corresponding to string representation.
+         * @param key String representation.
+         * @return Enum value corresponding to string representation.
+         */
         T toEnum(const std::string& key) const
         {
           return stringToEnum.at(key);

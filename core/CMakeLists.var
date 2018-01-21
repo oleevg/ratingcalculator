@@ -14,7 +14,6 @@ set(library_type)
 set(headers
     include/core/ThreadHelper.hpp
     include/core/BaseException.hpp
-    include/core/SystemException.hpp
     include/core/EnumConverter.hpp
     include/core/TimeHelper.hpp
     include/core/ulog.h
@@ -27,7 +26,6 @@ set(headers
 
 set(sources
     src/BaseException.cpp
-    src/SystemException.cpp
     src/TimeHelper.cpp
     src/ulog.c
     )

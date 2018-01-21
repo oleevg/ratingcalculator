@@ -25,6 +25,9 @@ namespace rating_calculator {
     class UserInformation;
     std::ostream& operator<<(std::ostream& out, const UserInformation& obj);
 
+    /**
+     * @brief Describes user identification type.
+     */
     struct UserIdInformation {
       explicit UserIdInformation(UserIdentifier id_) : id(id_)
       {}
@@ -37,6 +40,9 @@ namespace rating_calculator {
       UserIdentifier id;
     };
 
+    /**
+     * @brief Describes user information.
+     */
     struct UserInformation {
       UserInformation(const UserIdentifier& id_, const std::string& name_) :
               id(id_), name(name_)
@@ -44,9 +50,6 @@ namespace rating_calculator {
 
       bool operator==(const UserInformation& obj) const
       {
-        std::cout << *this;
-        std::cout << obj;
-
         return ((id == obj.id) && (name == obj.name));
       }
 
@@ -54,6 +57,9 @@ namespace rating_calculator {
       std::string name;
     };
 
+    /**
+     * @brief Describes user deal information.
+     */
     struct DealInformation {
       DealInformation(const UserIdentifier& userId_, uint64_t timestamp_, float amount_) :
               userId(userId_), timestamp(timestamp_), amount(amount_)
@@ -61,9 +67,6 @@ namespace rating_calculator {
 
       bool operator==(const DealInformation& obj) const
       {
-        std::cout << *this;
-        std::cout << obj;
-
         return ((userId == obj.userId) && (timestamp == obj.timestamp) && (amount == obj.amount));
       }
 
@@ -72,6 +75,9 @@ namespace rating_calculator {
       float amount;
     };
 
+    /**
+     * @brief Describes user rating position.
+     */
     struct UserPosition {
       UserPosition(const UserInformation& userInformation_, size_t position_, float amount_):
       userInformation(userInformation_), position(position_), amount(amount_)
@@ -90,6 +96,10 @@ namespace rating_calculator {
 
     typedef std::vector<UserPosition> UserPositionsCollection;
 
+    /**
+     * @brief Describes user relative rating information.
+     * @detailed Includes the actual user rating information as well as head users information, low and high users information in relation to the requested user position.
+     */
     struct UserRelativeRating {
       UserRelativeRating(const UserPosition& userPosition_, const UserPositionsCollection& headPositions_,
                          const UserPositionsCollection& highPositions_, const UserPositionsCollection& lowPositions_)
@@ -107,24 +117,6 @@ namespace rating_calculator {
       UserPositionsCollection highPositions;
       UserPositionsCollection lowPositions;
     };
-
-    /// TMP!
-    inline std::ostream& operator<<(std::ostream& out, const DealInformation& obj)
-    {
-//      out << "--- User id: " << obj.userId << std::endl;
-//      out << "--- Timestamp: " << obj.timestamp << std::endl;
-//      out << "--- Amount: " << obj.amount << std::endl;
-
-      return out;
-    }
-
-    inline std::ostream& operator<<(std::ostream& out, const UserInformation& obj)
-    {
-//      out << "--- User id: " << obj.id << std::endl;
-//      out << "--- Name: " << obj.name << std::endl;
-
-      return out;
-    }
 
   }
 

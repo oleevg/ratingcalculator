@@ -12,7 +12,6 @@
 #include <boost/format.hpp>
 
 #include <core/ulog.h>
-#include <core/SystemException.hpp>
 #include <core/ThreadHelper.hpp>
 
 #include "Application.hpp"
@@ -29,11 +28,6 @@ namespace rating_calculator {
       {
         parseArguments(argc, argv);
         rc = appService->run();
-      }
-      catch (const core::SystemException& exc)
-      {
-        mdebug_error(exc.what());
-        rc = exc.getErrorCode();
       }
       catch (const core::BaseException& exc)
       {
@@ -64,13 +58,11 @@ namespace rating_calculator {
       int port = portDefault;
       int period = periodDefault;
       size_t threadPoolSize = threadPoolSizeDefault;
-      bool debugRun = debugRunDefault;
 
       optionDescription.add_options()
               ("port,p", options::value<int>(&port)->default_value(portDefault), "The port number to listen.")
               ("period,t", options::value<int>(&period)->default_value(periodDefault), "Rating update period in seconds.")
               ("threads", options::value<size_t>(&threadPoolSize)->default_value(threadPoolSizeDefault), "The service's thread pool size.")
-              ("debug,d", options::bool_switch(&debugRun)->default_value(debugRunDefault), "Interactive run without daemonizing.")
               ("help,h", "As it says.");
 
       options::variables_map variableMap;

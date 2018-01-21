@@ -14,14 +14,14 @@ namespace rating_calculator {
 
   namespace tempstore {
 
-    core::IUserDataStore& rating_calculator::tempstore::DataStoreFactory::createUserDataStore()
+    core::IUserDataStore& rating_calculator::tempstore::DataStoreFactory::getUserDataStore()
     {
       static UserDataStore userDataStore;
 
       return userDataStore;
     }
 
-    core::IUserDealDataStore& DataStoreFactory::createUserDealDataStore()
+    core::IUserDealDataStore& DataStoreFactory::getUserDealDataStore()
     {
       static UserDealDataStore userDealDataStore;
 

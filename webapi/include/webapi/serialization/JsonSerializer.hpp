@@ -25,6 +25,11 @@ namespace rating_calculator {
       template<typename T>
       class ViewTypeOnCompile;
 
+      /**
+       * @brief Custom type serializer.
+       * @tparam T Custom type to serialize.
+       * @tparam Enable
+       */
       template<class T, class Enable = void>
       struct JsonSerializer {
         static boost::property_tree::ptree Serialize(const T& value)

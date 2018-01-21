@@ -16,9 +16,9 @@ namespace rating_calculator {
 
     class DataStoreFactory : public core::IDataStoreFactory {
       public:
-        core::IUserDataStore& createUserDataStore() override;
+        core::IUserDataStore& getUserDataStore() override;
 
-        core::IUserDealDataStore& createUserDealDataStore() override;
+        core::IUserDealDataStore& getUserDealDataStore() override;
     };
 
   }

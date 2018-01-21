@@ -27,6 +27,10 @@ namespace rating_calculator {
 
   namespace tempstore {
 
+    /**
+     * @brief Class responsible for storing and providing access to users rating information.
+     * @detailed Rating calculated for the current period starting from the specified week day and ending in specified 'periodDuration' seconds.
+     */
     class SortedUserDealStore : public boost::noncopyable {
         struct MultiKeyData {
           MultiKeyData(const core::UserIdentifier& _id, float _amount):
@@ -42,24 +46,63 @@ namespace rating_calculator {
         typedef core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id, &MultiKeyData::amount> SortedDealContainer;
 
       public:
+        /**
+         * @brief ctor.
+         * @param startPeriodDay Start day of rating calculation period.
+         * @param periodDuration Rating calculation period duration in seconds.
+         * @param dataStoreFactory
+         */
         SortedUserDealStore(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
                             const core::IDataStoreFactory::Ptr& dataStoreFactory);
 
         ~SortedUserDealStore();
 
+        /**
+         * @brief Provides user rating information for the specified user.
+         * @param userIdentifier User identifier to get rating information for.
+         * @return User rating information.
+         */
         core::UserPosition getUserPosition(const core::UserIdentifier& userIdentifier) const;
 
+        /**
+         * @brief Provides users rating information for the first rating table positions.
+         * @param nPositions Tne number of users to be included in the result.
+         * @return Users rating information.
+         */
         core::UserPositionsCollection getHeadPositions(size_t nPositions) const;
 
+        /**
+         * @brief Provides users rating information which are higher in rating than the specified user.
+         * @param userIdentifier User identifier to get rating information relative to.
+         * @param nPositions ne number of users to be included in the result.
+         * @return Users rating information.
+         */
         core::UserPositionsCollection
         getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
 
+        /**
+         * @brief Provides users rating information which are lower in rating than the specified user.
+         * @param userIdentifier User identifier to get rating information relative to.
+         * @param nPositions ne number of users to be included in the result.
+         * @return Users rating information.
+         */
         core::UserPositionsCollection
         getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
 
+        /**
+         * @brief Adds deal information to the store.
+         * @param dealInformation
+         */
         void addDeal(const core::DealInformation& dealInformation);
 
+        /**
+         * @brief Starts rating calculation process.
+         */
         void start();
+
+        /**
+         * @brief Stops rating calculation process.
+         */
         void stop();
 
       private:

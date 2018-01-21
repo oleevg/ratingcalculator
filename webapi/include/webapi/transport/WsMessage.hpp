@@ -21,6 +21,9 @@ namespace rating_calculator {
 
     namespace transport {
 
+      /**
+       * @brief Supported protocol messages types.
+       */
       enum class WsMessageType {
           Ack = 0,
           Data,
@@ -29,11 +32,19 @@ namespace rating_calculator {
 
       typedef uint16_t WsMessageIdentifier;
 
+      /**
+       * @brief Base protocol message.
+       */
       class WsMessage {
         public:
           typedef std::shared_ptr<WsMessage> Ptr;
 
         public:
+          /**
+           * @brief ctor
+           * @param type Message type to create.
+           * @param id Message identifier.
+           */
           WsMessage(WsMessageType type, WsMessageIdentifier id);
 
           WsMessageType getType() const;
@@ -46,8 +57,18 @@ namespace rating_calculator {
 
       typedef uint8_t ErrorCode;
 
+      /**
+       * @brief Message describing internal protocol errors.
+       * @detailed Not used so far.
+       */
       class WsError : public WsMessage {
         public:
+          /**
+           * @brief ctor
+           * @param id Message identifier.
+           * @param errorMessage Error description.
+           * @param errorCode Error code.
+           */
           WsError(WsMessageIdentifier id, const std::string& errorMessage, ErrorCode errorCode);
 
           const std::string& getErrorMessage() const;
@@ -59,22 +80,37 @@ namespace rating_calculator {
           ErrorCode errorCode_;
       };
 
+      /**
+       * @brief Acknowledgement message to confirm other side message received successfully.
+       */
       class WsAck : public WsMessage {
         public:
+          /**
+           * @brief ctor
+           * @param id Other side message identifier to confirm.
+           */
           WsAck(WsMessageIdentifier id);
       };
 
-        class WsData : public WsMessage {
+      /**
+       * @brief Protocol data message.
+       */
+      class WsData : public WsMessage {
         public:
           typedef std::shared_ptr<WsData> Ptr;
 
         public:
-         WsData(WsMessageIdentifier id, const core::BaseMessage::Ptr& data);
+          /**
+           * @brief ctor
+           * @param id Message identifier.
+           * @param data Data to send inside protocol data message.
+           */
+          WsData(WsMessageIdentifier id, const core::BaseMessage::Ptr& data);
 
           const core::BaseMessage::Ptr& getData() const;
 
         private:
-            core::BaseMessage::Ptr data_;
+          core::BaseMessage::Ptr data_;
       };
 
     }

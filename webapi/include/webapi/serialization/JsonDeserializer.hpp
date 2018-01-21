@@ -28,6 +28,11 @@ namespace rating_calculator {
       class ViewTypeOnCompile;
 
 
+      /**
+       * @brief Custom type deserializer.
+       * @tparam T Custom type to deserialize.
+       * @tparam Enable
+       */
       template<class T, class Enable = void>
       struct JsonDeserializer {
         static T Parse(const boost::property_tree::ptree& tree)
