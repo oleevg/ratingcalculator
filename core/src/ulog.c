@@ -12,7 +12,7 @@
 
 #include <core/ulog.h>
 
-static const int max_input_size=1024;
+static const int max_input_size=1024 * 1024;
 
 static inline char* getCurrentTime(char* buffer, size_t bufferSize)
 {

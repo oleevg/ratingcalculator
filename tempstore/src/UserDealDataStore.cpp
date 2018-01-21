@@ -13,7 +13,9 @@ namespace rating_calculator {
 
     void UserDealDataStore::addDeal(const core::DealInformation& dealInformation)
     {
-      // TODO: for now don't use all the deals history
+      // TODO: for now don't use any deals history
+
+      dealAddedSignal(dealInformation);
     }
 
     void UserDealDataStore::addDealAddedSlot(const core::DealAddedSignal::slot_type& slot)

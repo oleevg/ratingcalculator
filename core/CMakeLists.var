@@ -22,6 +22,7 @@ set(headers
     include/core/IUserDataStore.hpp
     include/core/IUserDealDataStore.hpp
     include/core/IDataStoreFactory.hpp
+    include/core/MultiKeyVolatileContainer.hpp
     )
 
 set(sources
@@ -34,6 +35,7 @@ set(sources
 set(tests
     test/EnumConverter_test.cpp
     test/TimeHelper_test.cpp
+    test/MultiKeyVolatileContainer_test.cpp
     )
 
 set(definitions

@@ -97,11 +97,11 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
 
       auto tree = serialization::JsonSerializer<decltype(message)>::Serialize(message);
 
-//      {
-//        std::stringstream stringstream;
-//        boost::property_tree::write_json(stringstream, tree);
-//        std::cout << "Serialized: " << stringstream.str() << std::endl;
-//      }
+      {
+        std::stringstream stringstream;
+        boost::property_tree::write_json(stringstream, tree);
+        std::cout << "Serialized: " << stringstream.str() << std::endl;
+      }
 
       auto messageDeserialized = serialization::JsonDeserializer<decltype(message)>::Parse(tree);
 

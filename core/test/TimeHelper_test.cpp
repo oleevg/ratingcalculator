@@ -19,9 +19,9 @@ BOOST_AUTO_TEST_SUITE(TimeHelper)
   {
     // Sun Jan 14 2018 ->
     std::tm tmTime;
-    tmTime.tm_sec = 0;
-    tmTime.tm_min = 0;
-    tmTime.tm_hour = 0;
+    tmTime.tm_sec = 12;
+    tmTime.tm_min = 12;
+    tmTime.tm_hour = 12;
 
     tmTime.tm_mon = 0;
     tmTime.tm_mday = 14;

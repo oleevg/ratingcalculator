@@ -10,6 +10,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <string>
 
 namespace rating_calculator {
 
@@ -32,6 +33,8 @@ namespace rating_calculator {
       public:
         static TimePoint getPreviousWeekDay(const TimePoint& timePoint, WeekDay weekDay);
         static TimePoint getNextWeekDay(const TimePoint& timePoint, WeekDay weekDay);
+
+        static std::string toString(const TimePoint& timePoint);
     };
 
   }

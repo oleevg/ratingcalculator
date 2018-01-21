@@ -9,6 +9,7 @@
 #include <ratio>
 
 #include <core/TimeHelper.hpp>
+#include <bits/basic_string.h>
 
 namespace rating_calculator {
 
@@ -18,7 +19,7 @@ namespace rating_calculator {
 
     TimePoint TimeHelper::getPreviousWeekDay(const TimePoint& timePoint, WeekDay weekDay)
     {
-      auto tTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+      auto tTime = std::chrono::system_clock::to_time_t(timePoint);
 
       std::tm* tmTime = std::gmtime(&tTime);
 
@@ -41,6 +42,18 @@ namespace rating_calculator {
       auto result = getPreviousWeekDay(timePoint, weekDay) + 7 * DurationInDays(1);
 
       return result;
+    }
+
+    std::string TimeHelper::toString(const TimePoint& timePoint)
+    {
+      time_t tTime = std::chrono::system_clock::to_time_t(timePoint);
+
+      struct tm * tmTime = std::gmtime(&tTime);
+      char buffer[80];
+
+      strftime(buffer, sizeof(buffer),"%d-%m-%Y %H:%M:%S", tmTime);
+
+      return std::string(buffer);
     }
   }
 

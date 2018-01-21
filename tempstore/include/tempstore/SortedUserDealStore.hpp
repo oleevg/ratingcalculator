@@ -21,12 +21,26 @@
 #include <core/IDataStoreFactory.hpp>
 #include <core/Types.hpp>
 #include <core/TimeHelper.hpp>
+#include <core/MultiKeyVolatileContainer.hpp>
 
 namespace rating_calculator {
 
   namespace tempstore {
 
     class SortedUserDealStore : public boost::noncopyable {
+        struct MultiKeyData {
+          MultiKeyData(const core::UserIdentifier& _id, float _amount):
+          id(_id), amount(_amount)
+          {
+
+          }
+
+          core::UserIdentifier id;
+          float amount;
+        };
+
+        typedef core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id, &MultiKeyData::amount> SortedDealContainer;
+
       public:
         SortedUserDealStore(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
                             const core::IDataStoreFactory::Ptr& dataStoreFactory);
@@ -43,6 +57,8 @@ namespace rating_calculator {
         core::UserPositionsCollection
         getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
 
+        void addDeal(const core::DealInformation& dealInformation);
+
         void start();
         void stop();
 
@@ -55,10 +71,11 @@ namespace rating_calculator {
         uint64_t periodDuration_;
 
         std::thread watcherThread_;
-        std::mutex storeMutex_;
+        mutable std::mutex storeMutex_;
         std::atomic<bool> stopped_;
 
         core::IDataStoreFactory::Ptr dataStoreFactory_;
+        SortedDealContainer sortedDealContainer_;
     };
 
   }

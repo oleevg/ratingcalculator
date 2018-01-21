@@ -91,7 +91,10 @@ namespace rating_calculator {
       auto iter = userConnections_.find(userIdentifier);
       if(iter == userConnections_.end())
       {
-        mdebug_info("New user connected: %d.", userIdentifier);
+        mdebug_info("New user connected: '%d'.", userIdentifier);
+
+        // TODO: eliminate this necessity to add empty deal information
+        sortedDealStore_.addDeal(core::DealInformation(userIdentifier, std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()), 0.0));
 
         auto userConnection = std::make_shared<UserConnection>(userIdentifier, connection);
         iter = userConnections_.insert({userIdentifier, userConnection}).first;
@@ -102,7 +105,7 @@ namespace rating_calculator {
       {
         if(iter->second->connected.load())
         {
-          mdebug_warn("Duplicated connection received for user: %d.", userIdentifier);
+          mdebug_warn("Duplicated connection received for user: '%d'.", userIdentifier);
         }
 
         iter->second->connected.store(true);
@@ -119,13 +122,13 @@ namespace rating_calculator {
       auto iter = userConnections_.find(userIdentifier);
       if(iter == userConnections_.end())
       {
-        mdebug_warn("Not connected user disconnected: %d.", userIdentifier);
+        mdebug_warn("Not connected user disconnected: '%d'.", userIdentifier);
       }
       else
       {
         if(!iter->second->connected.load())
         {
-          mdebug_warn("Duplicated disconnection received for user: %d.", userIdentifier);
+          mdebug_warn("Duplicated disconnection received for user: '%d'.", userIdentifier);
         }
 
         iter->second->connected.store(false);
@@ -143,12 +146,12 @@ namespace rating_calculator {
         return;
       }
 
-      mdebug_info("Going to send rating information for user: %d.", userIdentifier);
+      mdebug_info("Going to send rating information for user: '%d'.", userIdentifier);
 
       auto userPosition = sortedDealStore_.getUserPosition(userIdentifier);
       auto headPositions = sortedDealStore_.getHeadPositions(nRatingPositions_);
-      auto highPositions = sortedDealStore_.getHighPositions(nRatingPositions_, userIdentifier);
-      auto lowPositions = sortedDealStore_.getLowPositions(nRatingPositions_, userIdentifier);
+      auto highPositions = sortedDealStore_.getHighPositions(userIdentifier, nRatingPositions_);
+      auto lowPositions = sortedDealStore_.getLowPositions(userIdentifier, nRatingPositions_);
 
       core::UserRelativeRating userRelativeRating (userPosition, headPositions, highPositions, lowPositions);
 
