@@ -13,7 +13,7 @@ set(library_type)
 
 set(headers
     include/tempstore/DataStoreFactory.hpp
-    include/tempstore/SortedUserDealStore.hpp
+    include/tempstore/UserRatingProvider.hpp
     src/UserDataStore.hpp
     src/UserDealDataStore.hpp
     )
@@ -22,7 +22,7 @@ set(sources
     src/DataStoreFactory.cpp
     src/UserDataStore.cpp
     src/UserDealDataStore.cpp
-    src/SortedUserDealStore.cpp
+    src/UserRatingProvider.cpp
     )
 
 set(tests

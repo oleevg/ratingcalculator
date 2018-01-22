@@ -33,15 +33,15 @@ namespace rating_calculator {
       public:
         /**
          * @brief ctor
-         * @param port Port number to run server's listener on.
-         * @param period User rating update period in seconds.
+         * @param port The server's port number to listen.
+         * @param timeout User rating update timeout in seconds.
          * @param threadPoolSize The service's thread pool size.
          */
-        ApplicationService(int port, int period, size_t threadPoolSize);
+        ApplicationService(int port, int timeout, size_t threadPoolSize);
 
         /**
-         * @brief Start the application life cycle.
-         * @return The applications return code.
+         * @brief Starts the application life cycle.
+         * @return The application's return code.
          */
         int run();
 

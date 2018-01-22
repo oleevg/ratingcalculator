@@ -8,7 +8,6 @@
 #include <memory>
 #include <thread>
 #include <string>
-#include <iostream>
 
 #include <core/Types.hpp>
 #include <core/BaseException.hpp>
@@ -24,8 +23,8 @@ namespace rating_calculator {
 
   namespace service {
 
-    ApplicationService::ApplicationService(int port, int period, size_t threadPoolSize):
-    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>(3, 3)), dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()), userRatingWatcher(period, 10, dataStoreFactory, protocol)
+    ApplicationService::ApplicationService(int port, int timeout, size_t threadPoolSize):
+    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()), dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()), userRatingWatcher(timeout, 10, dataStoreFactory, protocol)
     {
       server.config.port = port;
       server.config.thread_pool_size = threadPoolSize;
@@ -45,6 +44,7 @@ namespace rating_calculator {
 
           if (!baseMessage)
           {
+            // The protocol service message was received.
             return;
           }
 
@@ -104,8 +104,7 @@ namespace rating_calculator {
         mdebug_info("Connection %s:%d (0x%x) closed with status code: %d.", connection->remote_endpoint_address().c_str(), connection->remote_endpoint_port(), connection.get(), status);
       };
 
-      // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-      echo.on_error = [selfType](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
+     echo.on_error = [selfType](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
         mdebug_error("Error in connection 0x%x. Error: %s (%d).", connection.get(), ec.message().c_str(), ec);
         selfType->server.stop();
       };

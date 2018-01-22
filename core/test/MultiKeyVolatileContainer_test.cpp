@@ -8,7 +8,6 @@
 #define BOOST_TEST_MODULE "Volatile key associative vector test module"
 
 #include <vector>
-#include <iostream>
 
 #include <boost/test/unit_test.hpp>
 
@@ -68,9 +67,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
     for (size_t i = 0; i < 10; ++i)
     {
       size_t position = i;
-      auto positionedData = multiKeyContainer.findWithPosition(position);
-
-      std::cout << "result: " << positionedData.value.amount << ", expected: " << 0.9 - i*0.1 << std::endl;
+      auto positionedData = multiKeyContainer.getPosition(position);
 
       BOOST_REQUIRE(positionedData.position == position);
       BOOST_TEST(positionedData.value.amount == (0.9 - position*0.1),  boost::test_tools::tolerance(0.001));
@@ -81,7 +78,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
   {
     size_t position = 8;
     multiKeyContainer.insert(UserData(8, 0.9));
-    auto positionedData = multiKeyContainer.findWithPosition(position);
+    auto positionedData = multiKeyContainer.getPosition(position);
 
     BOOST_REQUIRE(positionedData.position == 0);
     BOOST_TEST(positionedData.value.amount == (0.9 + 0.1), boost::test_tools::tolerance(0.001));
@@ -125,7 +122,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
     for (size_t i = 0; i < nPositions && i < positionedDataContainer.size(); ++i)
     {
       size_t shift = i + position + 1;
-      std::cout << "result: " << positionedDataContainer[i].value.amount << ", expected: " << (0.9 - shift*0.1) << std::endl;
+
       BOOST_REQUIRE(positionedDataContainer[i].position == shift);
       BOOST_TEST(positionedDataContainer[i].value.amount == (0.9 - shift*0.1),  boost::test_tools::tolerance(0.001));
     }

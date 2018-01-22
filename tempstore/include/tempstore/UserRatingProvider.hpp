@@ -1,5 +1,5 @@
 /*
- * SortedUserDealStore.hpp
+ * UserRatingProvider.hpp
  *
  *  Created on: 1/14/18
  *      Author: Oleg F., fedorov.ftf@gmail.com
@@ -31,7 +31,7 @@ namespace rating_calculator {
      * @brief Class responsible for storing and providing access to users rating information.
      * @detailed Rating calculated for the current period starting from the specified week day and ending in specified 'periodDuration' seconds.
      */
-    class SortedUserDealStore : public boost::noncopyable {
+    class UserRatingProvider : public boost::noncopyable {
         struct MultiKeyData {
           MultiKeyData(const core::UserIdentifier& _id, float _amount):
           id(_id), amount(_amount)
@@ -52,10 +52,10 @@ namespace rating_calculator {
          * @param periodDuration Rating calculation period duration in seconds.
          * @param dataStoreFactory
          */
-        SortedUserDealStore(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+        UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
                             const core::IDataStoreFactory::Ptr& dataStoreFactory);
 
-        ~SortedUserDealStore();
+        ~UserRatingProvider();
 
         /**
          * @brief Provides user rating information for the specified user.
@@ -94,6 +94,13 @@ namespace rating_calculator {
          * @param dealInformation
          */
         void addDeal(const core::DealInformation& dealInformation);
+
+        /**
+         * @brief Test for user's information availability.
+         * @param userIdentifier User identifier.
+         * @return True if the user's rating information is available and False otherwise..
+         */
+        bool isUserPresent(const core::UserIdentifier& userIdentifier) const;
 
         /**
          * @brief Starts rating calculation process.

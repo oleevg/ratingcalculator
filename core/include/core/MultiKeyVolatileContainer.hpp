@@ -86,8 +86,6 @@ namespace rating_calculator {
             auto newValue = Modify()((**sortIter).*sortKey, value.*sortKey);
             (**sortIter).*sortKey = newValue;
 
-            std::cout << "User: " << value.*accessKey << ", oldValue: " << oldValue << ", newValue: " << newValue << std::endl;
-
             if(Comp()(newValue, oldValue))
             {
               // Have to move left
@@ -139,7 +137,7 @@ namespace rating_calculator {
           }
         }
 
-        PositionedData findWithPosition(const AccessKey& key) const
+        PositionedData getPosition(const AccessKey& key) const
         {
           auto sortIter = findInSortContainer(key);
 

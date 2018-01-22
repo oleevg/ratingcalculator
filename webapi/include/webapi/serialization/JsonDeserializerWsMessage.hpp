@@ -37,21 +37,6 @@ namespace rating_calculator {
         }
       };
 
-//      template<>
-//      struct JsonDeserializer<transport::WsAck> {
-//        static transport::WsAck Parse(const boost::property_tree::ptree& tree)
-//        {
-//          if (!tree.empty())
-//          {
-//            transport::WsMessage wsMessage = JsonDeserializer<transport::WsMessage>::Parse(tree);
-//
-//            return transport::WsAck(wsMessage.getId());
-//          }
-//
-//          throw SerializerException("Can't deserialize empty JSON value.");
-//        }
-//      };
-
       template<>
       struct JsonDeserializer<transport::WsData> {
         static transport::WsData Parse(const boost::property_tree::ptree& tree)

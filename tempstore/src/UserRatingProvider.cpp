@@ -1,5 +1,5 @@
 /*
- * SortedUserDealStore.cpp
+ * UserRatingProvider.cpp
  *
  *  Created on: 1/14/18
  *      Author: Oleg F., fedorov.ftf@gmail.com
@@ -10,13 +10,13 @@
 
 #include <core/ulog.h>
 
-#include <tempstore/SortedUserDealStore.hpp>
+#include <tempstore/UserRatingProvider.hpp>
 
 namespace rating_calculator {
 
   namespace tempstore {
 
-    SortedUserDealStore::SortedUserDealStore(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+    UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
                                              const core::IDataStoreFactory::Ptr& dataStoreFactory) :
             periodDuration_(periodDuration), stopped_(false), dataStoreFactory_(dataStoreFactory), sortedDealContainer_(UINT16_MAX)
     {
@@ -28,12 +28,17 @@ namespace rating_calculator {
       });
     }
 
-    SortedUserDealStore::~SortedUserDealStore()
+    UserRatingProvider::~UserRatingProvider()
     {
       stop();
     }
 
-    core::UserPositionsCollection SortedUserDealStore::getHeadPositions(size_t nPositions) const
+    bool UserRatingProvider::isUserPresent(const core::UserIdentifier& userIdentifier) const
+    {
+      return sortedDealContainer_.isPresent(userIdentifier);
+    }
+
+    core::UserPositionsCollection UserRatingProvider::getHeadPositions(size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -50,7 +55,7 @@ namespace rating_calculator {
     }
 
     core::UserPositionsCollection
-    SortedUserDealStore::getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const
+    UserRatingProvider::getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -69,7 +74,7 @@ namespace rating_calculator {
     }
 
     core::UserPositionsCollection
-    SortedUserDealStore::getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const
+    UserRatingProvider::getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -87,25 +92,25 @@ namespace rating_calculator {
       return result;
     }
 
-    core::UserPosition SortedUserDealStore::getUserPosition(const core::UserIdentifier& userIdentifier) const
+    core::UserPosition UserRatingProvider::getUserPosition(const core::UserIdentifier& userIdentifier) const
     {
       auto& userDataStore = dataStoreFactory_->getUserDataStore();
 
       std::lock_guard<std::mutex> lck(storeMutex_);
 
-      auto userRating = sortedDealContainer_.findWithPosition(userIdentifier);
+      auto userRating = sortedDealContainer_.getPosition(userIdentifier);
 
       return core::UserPosition(userDataStore.getUserInformation(userIdentifier), userRating.position, userRating.value.amount);
     }
 
-    void SortedUserDealStore::updatePeriod(const core::TimePoint& startTime)
+    void UserRatingProvider::updatePeriod(const core::TimePoint& startTime)
     {
       startTime_ = startTime;
       endTime_ = startTime + std::chrono::seconds(periodDuration_);
       mdebug_info("Updated rating period: startTime = '%s', endTime = '%s', now = '%s'.", core::TimeHelper::toString(startTime_).c_str(), core::TimeHelper::toString(endTime_).c_str(), core::TimeHelper::toString(std::chrono::system_clock::now()).c_str());
     }
 
-    void SortedUserDealStore::start()
+    void UserRatingProvider::start()
     {
       if(!stopped_.load())
       {
@@ -124,7 +129,7 @@ namespace rating_calculator {
       }
     }
 
-    void SortedUserDealStore::stop()
+    void UserRatingProvider::stop()
     {
       bool expected = false;
       if (stopped_.compare_exchange_strong(expected, true))
@@ -133,7 +138,7 @@ namespace rating_calculator {
       }
     }
 
-    void SortedUserDealStore::addDeal(const core::DealInformation& dealInformation)
+    void UserRatingProvider::addDeal(const core::DealInformation& dealInformation)
     {
       if (dealInformation.timestamp < std::chrono::system_clock::to_time_t(startTime_))
       {

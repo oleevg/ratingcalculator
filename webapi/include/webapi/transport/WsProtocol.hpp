@@ -32,7 +32,7 @@ namespace rating_calculator {
     namespace transport {
 
       /**
-       * @brief Class describing application protocol used above web sockets communication.
+       * @brief Class describing application protocol used above WebSocket communication.
        * @tparam ConnectionSide Server or client type going from SimpleWebSocket project.
        */
       template <class ConnectionSide>
@@ -81,14 +81,14 @@ namespace rating_calculator {
           /**
            * @brief Sends the protocol message to the client.
            * @param message Message to be send.
-           * @param connection Client' connection to send to.
+           * @param connection Client' connection to send message to.
            */
           void sendMessage(const core::BaseMessage::Ptr& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 
 
           /**
-           * @brief Parses received message to obtain protocol specific one.
-           * @param message Received message form Web Socket layer.
+           * @brief Parses received data to obtain protocol internal message.
+           * @param message Received message form WebSocket layer.
            * @param connection Client's connection.
            * @return Custom message or nullptr if protocol service message was received.
            */

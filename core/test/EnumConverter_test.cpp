@@ -48,27 +48,27 @@ BOOST_AUTO_TEST_SUITE(EnumConverter)
     BOOST_REQUIRE(value2 == "value2");
   }
 
-//  BOOST_AUTO_TEST_CASE(StringToEnum_equal_true)
-//  {
-//    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
-//
-//    auto value1 = enumConverter.toEnum("value1");
-//    auto value2 = enumConverter.toEnum("value2");
-//
-//    BOOST_REQUIRE(value1 == TestEnum::Value1);
-//    BOOST_REQUIRE(value2 == TestEnum::Value2);
-//  }
-//
-//  BOOST_AUTO_TEST_CASE(StringToEnumInCase_equal_true)
-//  {
-//    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
-//
-//    auto value1 = enumConverter.toEnum("Value1");
-//    auto value2 = enumConverter.toEnum("vALUE2");
-//
-//    BOOST_REQUIRE(value1 == TestEnum::Value1);
-//    BOOST_REQUIRE(value2 == TestEnum::Value2);
-//  }
+  BOOST_AUTO_TEST_CASE(StringToEnum_equal_true)
+  {
+    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
+
+    auto value1 = enumConverter.toEnum("value1");
+    auto value2 = enumConverter.toEnum("value2");
+
+    BOOST_REQUIRE(value1 == TestEnum::Value1);
+    BOOST_REQUIRE(value2 == TestEnum::Value2);
+  }
+
+  BOOST_AUTO_TEST_CASE(StringToEnumInCase_equal_true)
+  {
+    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
+
+    auto value1 = enumConverter.toEnum("Value1");
+    auto value2 = enumConverter.toEnum("vALUE2");
+
+    BOOST_REQUIRE(value1 == TestEnum::Value1);
+    BOOST_REQUIRE(value2 == TestEnum::Value2);
+  }
 
 BOOST_AUTO_TEST_SUITE_END()
 

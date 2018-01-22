@@ -9,7 +9,6 @@
 
 
 #include <string>
-#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -37,13 +36,6 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
       core::UserInformation userInformation{12345, "user"};
 
       auto tree = JsSerializer<decltype(userInformation)>::Serialize(userInformation);
-
-//      {
-//        std::stringstream stringstream;
-//        boost::property_tree::write_json(stringstream, tree);
-//        std::cout << "Serialized: " << stringstream.str() << std::endl;
-//      }
-
       core::UserInformation userInformationDeserialized = JsDeserializer<core::UserInformation>::Parse(tree);
 
       BOOST_REQUIRE(userInformation == userInformationDeserialized);
@@ -54,13 +46,6 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
       core::Message<core::UserInformation> message(core::MessageType::UserRegistered, 12345, "user");
 
       auto tree = serialization::JsonSerializer<decltype(message)>::Serialize(message);
-
-//      {
-//        std::stringstream stringstream;
-//        boost::property_tree::write_json(stringstream, tree);
-//        std::cout << "Serialized: " << stringstream.str() << std::endl;
-//      }
-
       auto messageDeserialized = serialization::JsonDeserializer<decltype(message)>::Parse(tree);
 
       BOOST_REQUIRE(message == messageDeserialized);
@@ -96,13 +81,6 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
       core::Message<core::UserRelativeRating> message(core::MessageType::UserRelativeRating, userRelativeRating);
 
       auto tree = serialization::JsonSerializer<decltype(message)>::Serialize(message);
-
-      {
-        std::stringstream stringstream;
-        boost::property_tree::write_json(stringstream, tree);
-        std::cout << "Serialized: " << stringstream.str() << std::endl;
-      }
-
       auto messageDeserialized = serialization::JsonDeserializer<decltype(message)>::Parse(tree);
 
       BOOST_REQUIRE(message == messageDeserialized);
@@ -123,10 +101,6 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
     auto child = JsSerializer<decltype(users)>::Serialize(users);
     boost::property_tree::ptree tree;
     tree.add_child("users", child);
-
-//    std::stringstream stringstream;
-//    boost::property_tree::write_json(stringstream, tree);
-//    std::cout << "Serialized: " << stringstream.str() << std::endl;
 
     auto usersDeserialized = JsDeserializer<decltype(users)>::Parse(tree.get_child("users"));
 

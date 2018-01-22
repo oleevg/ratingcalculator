@@ -51,7 +51,6 @@ namespace rating_calculator {
       const int portDefault = 88888;
       const int periodDefault = 5;
       const size_t threadPoolSizeDefault = 5;
-      const bool debugRunDefault = false;
 
       options::options_description optionDescription((boost::format("Usage: %s [options]... \nOptions") % argv[0]).str());
 

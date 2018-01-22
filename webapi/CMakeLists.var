@@ -24,14 +24,12 @@ set(headers
     include/webapi/serialization/SerializerException.hpp
     include/webapi/serialization/JsonSerializerWsMessage.hpp
     include/webapi/serialization/JsonDeserializerWsMessage.hpp
-    ../core/include/core/Model.hpp
     include/webapi/transport/WsMessage.hpp
     include/webapi/transport/WsProtocol.hpp
     )
 
 set(sources
     src/transport/WsMessage.cpp
-    ../core/src/Model.cpp
     src/transport/WsProtocol.cpp
     )
 

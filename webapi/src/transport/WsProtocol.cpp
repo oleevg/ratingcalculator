@@ -37,13 +37,7 @@ namespace rating_calculator {
           {
             if(ec)
             {
-              std::cout << "Server: Error sending message. " <<
-                        // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-                        "Error: " << ec << ", error message: " << ec.message() << std::endl;
-            }
-            else
-            {
-
+              mdebug_error("Couldn't send message. Error: %s(%d).", ec.message().c_str(), ec);
             }
           });
         }
@@ -75,7 +69,7 @@ namespace rating_calculator {
       {
         WsData wsData(getNextOutCounter(), message);
 
-        mdebug_notice("Send data message: '%d'.", wsData.getId());
+        mdebug_notice("Going to send 'DATA' message: '%d'.", wsData.getId());
         sendMessageInternal<ConnectionSide>(connection, wsData);
 
         addToResendStore(connection, std::make_shared<MessageData>(connection, wsData));
@@ -93,24 +87,21 @@ namespace rating_calculator {
         boost::property_tree::ptree tree;
         boost::property_tree::read_json(stringStream, tree);
 
-        mdebug_notice("Received message: '%s'.", stringStream.str().c_str());
-
         WsMessage::Ptr wsMessage = serialization::JsonDeserializer<WsMessage>::Parse(tree);
 
         if(wsMessage->getType() == WsMessageType::Ack)
         {
-          mdebug_notice("Received ACK for message: '%d'.", wsMessage->getId());
+          mdebug_notice("Received 'ACK' message: '%s'.", stringStream.str().c_str());
           removeFromResendStore(wsMessage->getId());
         }
         else if(wsMessage->getType() == WsMessageType::Data)
         {
           auto wsData = std::static_pointer_cast<WsData>(wsMessage);
           result = wsData->getData();
-
-          mdebug_notice("Received data message: '%s'.", core::EnumConverter<core::MessageType>::get_const_instance().toString(result->getType()).c_str());
+          mdebug_info("Received 'DATA' message: '%s'.", stringStream.str().c_str());
 
           WsAck wsAck(wsMessage->getId());
-          mdebug_notice("Going to send ACK for: '%d'.", wsMessage->getId());
+          mdebug_notice("Going to send 'ACK' for: '%d'.", wsMessage->getId());
           sendMessageInternal<ConnectionSide>(connection, wsAck);
         }
 
@@ -138,7 +129,7 @@ namespace rating_calculator {
       void WsProtocol<ConnectionSide>::removeFromResendStoreUnsafe(WsMessageIdentifier messageId)
       {
         size_t erasedMessages = resendStore.erase(messageId);
-        mdebug_notice("Going to remove message with id '%d' from resend store.", messageId, core::ThreadHelper::threadIdToInt());
+        mdebug_notice("Going to remove message with id '%d' from the resend store.", messageId, core::ThreadHelper::threadIdToInt());
 
         if(erasedMessages != 1)
         {
@@ -160,7 +151,6 @@ namespace rating_calculator {
             }
 
             std::list<WsMessageIdentifier> messagesToRemove;
-            mdebug_notice("Resend store size: '%d'.", resendStore.size());
             for (auto& resendStoreItem : resendStore)
             {
               auto messageId = resendStoreItem.first;
@@ -174,7 +164,7 @@ namespace rating_calculator {
                   auto connection = messageData.connection.lock();
                   if (connection)
                   {
-                    mdebug_notice("Resend message with id: '%d'.", messageId);
+                    mdebug_notice("Going to resend message with id: '%d'.", messageId);
                     sendMessageInternal<ConnectionSide>(connection, messageData.message);
                     ++messageData.resendCounter;
                     messageData.lastSentTimePoint = std::chrono::system_clock::now();

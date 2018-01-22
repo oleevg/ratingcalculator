@@ -7,8 +7,6 @@
 
 #define BOOST_TEST_MODULE "WsMessageSerialization test module"
 
-#include <iostream>
-
 #include <boost/test/unit_test.hpp>
 
 #include <webapi/serialization/JsonSerializerWsMessage.hpp>
@@ -22,7 +20,6 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
   bool operator==(const transport::WsMessage& lhs, const transport::WsMessage& rhs)
   {
-    std::cout << "WsMessage comparison" << std::endl;
     return (lhs.getType() == rhs.getType() && lhs.getId() == rhs.getId());
   }
 
@@ -37,7 +34,6 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
   template <class T>
   bool operator==(const transport::WsData& lhs, const transport::WsData& rhs)
   {
-    std::cout << "WsData comparison" << std::endl;
     bool base = static_cast<const transport::WsMessage&>(lhs) == static_cast<const transport::WsMessage&>(rhs);
 
     auto lData = std::static_pointer_cast<core::Message <T>>(lhs.getData());
@@ -54,13 +50,6 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
     rating_calculator::webapi::transport::WsError wsError(123, "Base error", 0);
 
     auto tree = serialization::JsonSerializer<transport::WsError>::Serialize(wsError);
-
-//    {
-//      std::stringstream stringstream;
-//      boost::property_tree::write_json(stringstream, tree);
-//      std::cout << "Serialized: " << stringstream.str() << std::endl;
-//    }
-
     auto wsErrorDeserialized = serialization::JsonDeserializer<decltype(wsError)>::Parse(tree);
 
     BOOST_REQUIRE(wsError == wsErrorDeserialized);
@@ -70,26 +59,13 @@ BOOST_AUTO_TEST_SUITE (WsMessageJsonSerializer)
 
     tree = serialization::JsonSerializer<decltype(wsData)>::Serialize(wsData);
 
-//    {
-//      std::stringstream stringstream;
-//      boost::property_tree::write_json(stringstream, tree);
-//      std::cout << "Serialized: " << stringstream.str() << std::endl;
-//    }
-
     auto wsDataDeserialized = serialization::JsonDeserializer<decltype(wsData)>::Parse(tree);
 
     BOOST_REQUIRE(wsData == wsDataDeserialized);
 
     // transport::WsData<core::Message<rating_calculator::core::DealInformation>>
     transport::WsData wsDealInformation(124, std::make_shared<rating_calculator::core::Message<rating_calculator::core::DealInformation>>(rating_calculator::core::MessageType::UserDealWon, 1234, 777, 123.456));
-
     tree = serialization::JsonSerializer<decltype(wsDealInformation)>::Serialize(wsDealInformation);
-
-//    {
-//      std::stringstream stringstream;
-//      boost::property_tree::write_json(stringstream, tree);
-//      std::cout << "Serialized: " << stringstream.str() << std::endl;
-//    }
 
     auto wsDealInformationDeserialized = serialization::JsonDeserializer<decltype(wsDealInformation)>::Parse(tree);
 

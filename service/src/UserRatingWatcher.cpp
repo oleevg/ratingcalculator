@@ -7,7 +7,7 @@
 
 #include <core/ulog.h>
 
-#include <tempstore/SortedUserDealStore.hpp>
+#include <tempstore/UserRatingProvider.hpp>
 
 #include "UserRatingWatcher.hpp"
 
@@ -16,11 +16,10 @@ namespace rating_calculator {
   namespace service {
 
     const size_t secondsInWeek = 7*24*3600;
-    const size_t testPeriod = 30;
 
     UserRatingWatcher::UserConnection::UserConnection(const core::UserIdentifier& _userIdentifier,
                                                       const std::shared_ptr<WsConnection>& _connection) :
-            userIdentifier(_userIdentifier), connection(_connection)
+            userIdentifier(_userIdentifier), connection(_connection), connected(true)
     {}
 
     UserRatingWatcher::UserRatingWatcher(int ratingUpdateTimeout, size_t nRatingPositions,
@@ -29,12 +28,12 @@ namespace rating_calculator {
             : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions),
               dataStoreFactory_(dataStoreFactory),
               protocol_(protocol), stopped_(false),
-              sortedDealStore_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
+              userRatingProvider_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
     {}
 
     void UserRatingWatcher::start()
     {
-      sortedDealStore_.start();
+      userRatingProvider_.start();
 
       if(!stopped_.load())
       {
@@ -48,7 +47,6 @@ namespace rating_calculator {
               userConnectionsCondVar_.wait(lck);
             }
 
-            mdebug_info("UserConnections.size()=%d.", userConnections_.size());
             for (const auto& item : userConnections_)
             {
               auto& userConnection = item.second;
@@ -79,7 +77,7 @@ namespace rating_calculator {
       bool expected = false;
       if(stopped_.compare_exchange_strong(expected, true))
       {
-        sortedDealStore_.stop();
+        userRatingProvider_.stop();
         ratingUpdateThread_.join();
       }
     }
@@ -92,9 +90,6 @@ namespace rating_calculator {
       if(iter == userConnections_.end())
       {
         mdebug_info("New user connected: '%d'.", userIdentifier);
-
-        // TODO: eliminate this necessity to add empty deal information
-        sortedDealStore_.addDeal(core::DealInformation(userIdentifier, std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()), 0.0));
 
         auto userConnection = std::make_shared<UserConnection>(userIdentifier, connection);
         iter = userConnections_.insert({userIdentifier, userConnection}).first;
@@ -137,21 +132,27 @@ namespace rating_calculator {
     }
 
     void UserRatingWatcher::sendUserRelativeRating(const core::UserIdentifier& userIdentifier,
-                                                   const std::weak_ptr<WsConnection>& connection) const
+                                                   const std::weak_ptr<WsConnection>& connection)
     {
       auto userConnection = connection.lock();
       if(!userConnection)
       {
-        mdebug_warn("Can't send user's rating as its connection gone.");
+        mdebug_warn("Can't send user's rating as its connection has gone.");
         return;
       }
 
       mdebug_info("Going to send rating information for user: '%d'.", userIdentifier);
 
-      auto userPosition = sortedDealStore_.getUserPosition(userIdentifier);
-      auto headPositions = sortedDealStore_.getHeadPositions(nRatingPositions_);
-      auto highPositions = sortedDealStore_.getHighPositions(userIdentifier, nRatingPositions_);
-      auto lowPositions = sortedDealStore_.getLowPositions(userIdentifier, nRatingPositions_);
+      if(!userRatingProvider_.isUserPresent(userIdentifier))
+      {
+        // TODO: eliminate necessity to register user with 0.0 deal before his/her real deals information received.
+        userRatingProvider_.addDeal(core::DealInformation(userIdentifier, std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()), 0.0));
+      }
+
+      auto userPosition = userRatingProvider_.getUserPosition(userIdentifier);
+      auto headPositions = userRatingProvider_.getHeadPositions(nRatingPositions_);
+      auto highPositions = userRatingProvider_.getHighPositions(userIdentifier, nRatingPositions_);
+      auto lowPositions = userRatingProvider_.getLowPositions(userIdentifier, nRatingPositions_);
 
       core::UserRelativeRating userRelativeRating (userPosition, headPositions, highPositions, lowPositions);
 

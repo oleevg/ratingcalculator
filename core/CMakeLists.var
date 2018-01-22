@@ -18,6 +18,7 @@ set(headers
     include/core/TimeHelper.hpp
     include/core/ulog.h
     include/core/Types.hpp
+    include/core/Model.hpp
     include/core/IUserDataStore.hpp
     include/core/IUserDealDataStore.hpp
     include/core/IDataStoreFactory.hpp
@@ -27,6 +28,7 @@ set(headers
 set(sources
     src/BaseException.cpp
     src/TimeHelper.cpp
+    src/Model.cpp
     src/ulog.c
     )
 
