@@ -6,6 +6,6 @@
  */
 
 /**
-@page server server
+@page service service
 Executable module containing application classes and the main file.
 */
