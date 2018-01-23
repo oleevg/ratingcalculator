@@ -9,6 +9,7 @@ WebSocket protocol is used to communicate with the service. [Simple-WebSocket-Se
 The service provides 'http://hostname:port/rating' WebSocket endpoint to receive clients connections.
 
 The service supports the following client messages transmitted in JSON format:
+
 * user_registered(id, name)
 * user_renamed(id, name)
 * user_deal_won(id, time, mount)
