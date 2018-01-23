@@ -112,11 +112,14 @@ namespace rating_calculator {
           size_t outCounter_;
 
           ResendMessageStore resendStore;
-          std::mutex resendStoreMutex;
 
           std::thread resendStoreThread;
+          std::mutex resendStoreMutex;
           std::condition_variable resendStoreCondVar;
+
           std::atomic<bool> stopped;
+          std::mutex stopMutex;
+          std::condition_variable stopCondVar;
       };
 
     }

@@ -4,20 +4,21 @@ Network service that provides traders rating calculation according to their succ
 
 ### Description
 
-WebSocket protocol is used in communication with the server. [Simple-WebSocket-Server](https://github.com/eidheim/Simple-WebSocket-Server) header-only implementation is used in project.
-The server provides 'http://hostname:port/rating' endpoint to receive clients connections.
+WebSocket protocol is used to communicate with the service. [Simple-WebSocket-Server](https://github.com/eidheim/Simple-WebSocket-Server) header-only implementation is used in project to deal with WebSocket protocol.
 
-The server supports the following client messages transmitted in JSON format:
-* user_registered(id,name)
-* user_renamed(id,name)
-* user_deal_won(id,time,amount)
+The service provides 'http://hostname:port/rating' WebSocket endpoint to receive clients connections.
+
+The service supports the following client messages transmitted in JSON format:
+* user_registered(id, name)
+* user_renamed(id, name)
+* user_deal_won(id, time, mount)
 * user_connected(id)
 * user_disconnected(id)
 
 
-The server uses its own simple protocol (WsProtocol) upon WebSocket messages so any supported message must be send using this protocol.
+The service uses its own simple protocol (WsProtocol) upon WebSocket messages. So any supported message must be wrapped in WsProtocol's message (WsMessage).
 
-The server's response message contains specific user relative rating. The rating is calculated within the limited period of time starting from the current Monday 00:00:00 and ending on the next Monday 00:00:00. The server sends the response message with relative rating information on every user's connection and also periodically in the specified timeout for all connected users.
+The service's response message contains specific user relative rating. The rating is calculated within the limited period of time starting from the current Monday 00:00:00 and ending on the next Monday 00:00:00. The service sends the response message with rating information on every user's connection and also periodically in the specified timeout for all connected users.
 
 The project contains simple test client that emulates users activities and sends the corresponding messages to the server. See section 'Usage' for additional information.
 
@@ -55,14 +56,14 @@ The project contains simple test client that emulates users activities and sends
 
 ### Usage
 
-* Start the server with the required arguments:
+* Start the service with the required arguments:
 
 ```
     $ cd .build/service
     $ ./ratingCalculator_service
 ```
 
-* Testing the server with the provided test client application.
+* Testing the service with the provided test client application.
 
   Start the test client application with the required arguments:
 ```
@@ -78,7 +79,7 @@ The project contains simple test client that emulates users activities and sends
      -h [ --help ]                     As it says.
 ```
 
-By default the server and the client sides write log messages on their corresponding terminals.
+By default the server and the client applications write log messages on their corresponding terminals.
 
 ### Running the tests
   CMake build framework might be used to run available unit tests. Just run 'ctest' inside build directory after building the sources.

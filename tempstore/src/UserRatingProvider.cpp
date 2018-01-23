@@ -117,13 +117,17 @@ namespace rating_calculator {
         watcherThread_ = std::thread([this]() {
           while (!stopped_.load())
           {
-            std::this_thread::sleep_until(endTime_);
+            std::unique_lock<std::mutex> stopLock(stopMutex_);
+            auto condVarStatus = stopCondVar_.wait_until(stopLock, endTime_);
 
-            std::lock_guard<std::mutex> lck(storeMutex_);
-            sortedDealContainer_.clear();
-            mdebug_info("Cleared sorted deal table.");
+            if(condVarStatus == std::cv_status::timeout)
+            {
+              std::lock_guard<std::mutex> storeLock(storeMutex_);
+              sortedDealContainer_.clear();
+              mdebug_info("Cleared sorted deal table.");
 
-            updatePeriod(endTime_);
+              updatePeriod(endTime_);
+            }
           }
         });
       }
@@ -134,6 +138,11 @@ namespace rating_calculator {
       bool expected = false;
       if (stopped_.compare_exchange_strong(expected, true))
       {
+        {
+          std::lock_guard<std::mutex> stopLock(stopMutex_);
+          stopCondVar_.notify_one();
+        }
+
         watcherThread_.join();
       }
     }

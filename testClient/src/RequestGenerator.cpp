@@ -6,6 +6,7 @@
  */
 
 #include <random>
+#include <chrono>
 
 #include "RequestGenerator.hpp"
 
@@ -13,8 +14,8 @@ namespace rating_calculator {
 
   namespace test_client {
 
-    RequestGenerator::RequestGenerator(size_t usersNumber) :
-    nUsersMax(usersNumber)
+    RequestGenerator::RequestGenerator(size_t nUsers) :
+    nUsersMax(nUsers)
     {
       users.reserve(nUsersMax);
     }
@@ -86,11 +87,13 @@ namespace rating_calculator {
 
       core::UserInformation user(userId, name);
 
-      users.push_back(TestUser(userId, name));
+      users.emplace_back(userId, name);
 
       // Otherwise we notify before message reaches recipient
       if(userId > 3)
-        usersCondVar.notify_all();
+      {
+        usersCondVar.notify_one();
+      }
 
       return std::make_shared<core::Message<core::UserInformation>>(core::MessageType::UserRegistered, user);
     }

@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 #include <atomic>
 
 #include <boost/noncopyable.hpp>
@@ -65,25 +66,25 @@ namespace rating_calculator {
         core::UserPosition getUserPosition(const core::UserIdentifier& userIdentifier) const;
 
         /**
-         * @brief Provides users rating information for the first rating table positions.
-         * @param nPositions Tne number of users to be included in the result.
+         * @brief Provides users rating information for the head rating table positions.
+         * @param nPositions The number of users to be included in the result.
          * @return Users rating information.
          */
         core::UserPositionsCollection getHeadPositions(size_t nPositions) const;
 
         /**
-         * @brief Provides users rating information which are higher in rating than the specified user.
+         * @brief Provides users rating information which are higher in rating position than the specified user.
          * @param userIdentifier User identifier to get rating information relative to.
-         * @param nPositions ne number of users to be included in the result.
+         * @param nPositions The number of users to be included in the result.
          * @return Users rating information.
          */
         core::UserPositionsCollection
         getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
 
         /**
-         * @brief Provides users rating information which are lower in rating than the specified user.
+         * @brief Provides users rating information which are lower in rating position than the specified user.
          * @param userIdentifier User identifier to get rating information relative to.
-         * @param nPositions ne number of users to be included in the result.
+         * @param nPositions The number of users to be included in the result.
          * @return Users rating information.
          */
         core::UserPositionsCollection
@@ -123,6 +124,9 @@ namespace rating_calculator {
         std::thread watcherThread_;
         mutable std::mutex storeMutex_;
         std::atomic<bool> stopped_;
+
+        std::mutex stopMutex_;
+        std::condition_variable stopCondVar_;
 
         core::IDataStoreFactory::Ptr dataStoreFactory_;
         SortedDealContainer sortedDealContainer_;

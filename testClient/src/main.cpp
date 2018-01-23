@@ -11,7 +11,6 @@
 #include <thread>
 #include <atomic>
 #include <random>
-#include <chrono>
 
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
@@ -35,20 +34,20 @@ int main(int argc, const char* argv[])
   const std::string addressDefault = "localhost";
   const int portDefault = 88888;
   const int requestTimeoutDefault = 1;
-  const size_t usersNumberDefault = 100;
+  const size_t nUsersDefault = 100;
 
   options::options_description optionDescription((boost::format("Usage: %s [options]... \nOptions") % argv[0]).str());
 
   std::string address = addressDefault;
   int port = portDefault;
-  int requestTimeout = requestTimeout;
-  size_t usersNumber = usersNumberDefault;
+  int requestTimeout = requestTimeoutDefault;
+  size_t nUsers = nUsersDefault;
 
   optionDescription.add_options()
           ("address,a", options::value<std::string>(&address)->default_value(addressDefault), "The server address to connect to.")
           ("port,p", options::value<int>(&port)->default_value(portDefault), "The port number to connect to.")
           ("timeout,t", options::value<int>(&requestTimeout)->default_value(requestTimeoutDefault), "Timeout in seconds to send generated test requests.")
-          ("users,u", options::value<size_t>(&usersNumber)->default_value(usersNumberDefault), "Maximum number of test users.")
+          ("users,u", options::value<size_t>(&nUsers)->default_value(nUsersDefault), "Maximum number of test users.")
           ("help,h", "As it says.");
 
   options::variables_map variableMap;
@@ -73,8 +72,6 @@ int main(int argc, const char* argv[])
   protocol.start();
 
   client.on_message = [&protocol](std::shared_ptr<WsClient::Connection> connection, std::shared_ptr<WsClient::Message> message) {
-    std::cout << "Client: Message received." << std::endl;
-
     core::BaseMessage::Ptr baseMessage = protocol.parseMessage(message, connection);
   };
 
@@ -84,20 +81,21 @@ int main(int argc, const char* argv[])
   };
 
   client.on_close = [](std::shared_ptr<WsClient::Connection> /*connection*/, int status, const std::string & /*reason*/) {
-    std::cout << "Client: Closed connection with status code " << status << std::endl;
+    mdebug_info("Client: Closed connection with status code '%d'.", status);
   };
 
   // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-  client.on_error = [&stopped](std::shared_ptr<WsClient::Connection> connection, const SimpleWeb::error_code &ec) {
-    std::cout << "Client: Error: " << ec << ", error message: " << ec.message() << std::endl;
+  client.on_error = [&stopped, &client](std::shared_ptr<WsClient::Connection> connection, const SimpleWeb::error_code &ec) {
+    mdebug_error("Error in connection. Error: %s (%d).", ec.message().c_str(), ec);
+
+    client.stop();
     stopped.store(true);
   };
 
 
-  std::thread clientThread([&client]()
-                           {
-                             client.start();
-                           });
+  std::thread clientThread([&client]() {
+    client.start();
+  });
 
 
   while (!clientConnection)
@@ -105,13 +103,13 @@ int main(int argc, const char* argv[])
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 
-  rating_calculator::test_client::RequestGenerator requestGenerator(usersNumber);
+  rating_calculator::test_client::RequestGenerator requestGenerator(nUsers);
 
-  std::thread usersRegisterThread([usersNumber, clientConnection, &requestGenerator, &protocol]() {
+  std::thread usersRegisterThread([nUsers, clientConnection, &requestGenerator, &protocol]() {
     std::mt19937 rg{std::random_device{}()};
     std::uniform_int_distribution<size_t> pickTimeout(1, 1000);
 
-    while (requestGenerator.getRegisteredUsersNumber() != usersNumber)
+    while (requestGenerator.getRegisteredUsersNumber() != nUsers)
     {
       auto userRegisteredMessage = requestGenerator.generateUserRegisteredMessage();
       protocol.sendMessage(userRegisteredMessage, clientConnection);

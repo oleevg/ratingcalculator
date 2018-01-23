@@ -47,7 +47,7 @@ namespace rating_calculator {
     };
 
     /**
-     * @brief Specific model message type.
+     * @brief Specific model message type with the specified payload..
      * @tparam T Custom type used as payload inside message.
      */
     template<class T>

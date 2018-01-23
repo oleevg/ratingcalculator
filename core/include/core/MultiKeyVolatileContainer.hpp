@@ -22,7 +22,7 @@ namespace rating_calculator {
   namespace core {
 
     /**
-     * @brief Multiple keys container optimized for updates for the second key.
+     * @brief Multiple keys container optimized for the second key updates.
      * @tparam AccessKey The first key type with complexity O(1) for access operations.
      * @tparam SortKey The second key type with complexity ~ O(ln(N)) for access operations.
      * @tparam Value Custom type to be stored in container.
@@ -256,7 +256,7 @@ namespace rating_calculator {
           if(accessIter == accessData_.end())
           {
             std::stringstream strStream;
-            strStream << "findInSortContainer() Item with access key '" << key << "' is not present in access container.";
+            strStream << "Item with access key '" << key << "' is not present in access container.";
 
             throw core::BaseException(strStream.str());
           }

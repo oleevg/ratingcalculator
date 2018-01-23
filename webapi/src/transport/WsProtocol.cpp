@@ -145,9 +145,9 @@ namespace rating_calculator {
           {
             std::unique_lock<std::mutex> lck(resendStoreMutex);
 
-            while (resendStore.empty())
+            while (resendStore.empty() && !stopped.load())
             {
-              resendStoreCondVar.wait(lck);
+              resendStoreCondVar.wait_for(lck, std::chrono::seconds(1));
             }
 
             std::list<WsMessageIdentifier> messagesToRemove;
@@ -195,7 +195,11 @@ namespace rating_calculator {
 
             lck.unlock();
 
-            std::this_thread::sleep_for(std::chrono::seconds(resendTimeout_));
+            if(!stopped.load())
+            {
+              std::unique_lock<std::mutex> stopLock(stopMutex);
+              stopCondVar.wait_for(stopLock, std::chrono::seconds(resendTimeout_));
+            }
           }
         });
       }
@@ -206,6 +210,11 @@ namespace rating_calculator {
         bool expected = false;
         if(stopped.compare_exchange_strong(expected, true))
         {
+          {
+            std::lock_guard<std::mutex> lck(stopMutex);
+            stopCondVar.notify_one();
+          }
+
           resendStoreThread.join();
         }
       }

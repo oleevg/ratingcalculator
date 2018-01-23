@@ -26,7 +26,7 @@ namespace rating_calculator {
     std::ostream& operator<<(std::ostream& out, const UserInformation& obj);
 
     /**
-     * @brief Describes user identification type.
+     * @brief User identification type wrapper used for serialization purposes.
      */
     struct UserIdInformation {
       explicit UserIdInformation(UserIdentifier id_) : id(id_)
@@ -98,7 +98,7 @@ namespace rating_calculator {
 
     /**
      * @brief Describes user relative rating information.
-     * @detailed Includes the actual user rating information as well as head users information, low and high users information in relation to the requested user position.
+     * @detailed Includes the specified user rating information as well as head, low and high users rating information in relation to the requested user position.
      */
     struct UserRelativeRating {
       UserRelativeRating(const UserPosition& userPosition_, const UserPositionsCollection& headPositions_,

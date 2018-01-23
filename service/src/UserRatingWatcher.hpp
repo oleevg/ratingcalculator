@@ -100,6 +100,9 @@ namespace rating_calculator {
         std::condition_variable userConnectionsCondVar_;
         UserConnectionCollection userConnections_;
 
+        std::mutex stopMutex_;
+        std::condition_variable stopCondVar_;
+
         tempstore::UserRatingProvider userRatingProvider_;
         core::IDataStoreFactory::Ptr dataStoreFactory_;
 

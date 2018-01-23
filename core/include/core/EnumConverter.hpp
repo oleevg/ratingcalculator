@@ -63,9 +63,9 @@ namespace rating_calculator {
         }
 
         /**
-         * @brief Provides enum type corresponding to string representation.
+         * @brief Provides enum type corresponding to the string representation.
          * @param key String representation.
-         * @return Enum value corresponding to string representation.
+         * @return Enum value corresponding to the string representation.
          */
         T toEnum(const std::string& key) const
         {

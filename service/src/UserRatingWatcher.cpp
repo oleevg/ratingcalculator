@@ -40,11 +40,10 @@ namespace rating_calculator {
         ratingUpdateThread_ = std::thread([this]() {
           while (!stopped_.load())
           {
-            mdebug_info("Going to update users ratings.");
             std::unique_lock<std::mutex> lck(userConnectionsMutex_);
-            while (userConnections_.empty())
+            while (userConnections_.empty() && !stopped_.load())
             {
-              userConnectionsCondVar_.wait(lck);
+              userConnectionsCondVar_.wait_for(lck, std::chrono::seconds(1));
             }
 
             for (const auto& item : userConnections_)
@@ -66,7 +65,12 @@ namespace rating_calculator {
             }
 
             lck.unlock();
-            std::this_thread::sleep_for(std::chrono::seconds(ratingUpdateTimeout_));
+
+            if(!stopped_.load())
+            {
+              std::unique_lock<std::mutex> stopLock(stopMutex_);
+              stopCondVar_.wait_for(stopLock, std::chrono::seconds(ratingUpdateTimeout_));
+            }
           }
         });
       }
@@ -77,6 +81,11 @@ namespace rating_calculator {
       bool expected = false;
       if(stopped_.compare_exchange_strong(expected, true))
       {
+        {
+          std::lock_guard<std::mutex> stopLock(stopMutex_);
+          stopCondVar_.notify_one();
+        }
+
         userRatingProvider_.stop();
         ratingUpdateThread_.join();
       }

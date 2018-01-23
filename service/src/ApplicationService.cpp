@@ -23,8 +23,10 @@ namespace rating_calculator {
 
   namespace service {
 
-    ApplicationService::ApplicationService(int port, int timeout, size_t threadPoolSize):
-    protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()), dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()), userRatingWatcher(timeout, 10, dataStoreFactory, protocol)
+    ApplicationService::ApplicationService(int port, int timeout, size_t threadPoolSize) :
+            protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()),
+            dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()),
+            userRatingWatcher(timeout, 10, dataStoreFactory, protocol)
     {
       server.config.port = port;
       server.config.thread_pool_size = threadPoolSize;
@@ -114,16 +116,19 @@ namespace rating_calculator {
     {
       setWsEndpoints();
 
-      protocol->start();
-      userRatingWatcher.start();
-
       auto selfCopy = shared_from_this();
 
       std::thread serverThread([selfCopy]() {
         selfCopy->server.start();
       });
 
+      mdebug_info("Listener started.");
+
+      protocol->start();
+      userRatingWatcher.start();
+
       serverThread.join();
+
       userRatingWatcher.stop();
       protocol->stop();
 
