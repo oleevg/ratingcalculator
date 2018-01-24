@@ -98,18 +98,18 @@ int main(int argc, const char* argv[])
   });
 
 
-  while (!clientConnection)
+  while (!clientConnection && !stopped.load())
   {
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 
   rating_calculator::test_client::RequestGenerator requestGenerator(nUsers);
 
-  std::thread usersRegisterThread([nUsers, clientConnection, &requestGenerator, &protocol]() {
+  std::thread usersRegisterThread([nUsers, clientConnection, &requestGenerator, &protocol, &stopped]() {
     std::mt19937 rg{std::random_device{}()};
     std::uniform_int_distribution<size_t> pickTimeout(1, 1000);
 
-    while (requestGenerator.getRegisteredUsersNumber() != nUsers)
+    while (requestGenerator.getRegisteredUsersNumber() != nUsers && !stopped.load())
     {
       auto userRegisteredMessage = requestGenerator.generateUserRegisteredMessage();
       protocol.sendMessage(userRegisteredMessage, clientConnection);
