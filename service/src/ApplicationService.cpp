@@ -55,28 +55,28 @@ namespace rating_calculator {
 
           if (baseMessage->getType() == core::MessageType::UserRegistered)
           {
-            auto userRegisteredMessage = std::static_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
+            auto userRegisteredMessage = std::dynamic_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
             userDataStore.addUser(userRegisteredMessage->getData());
           }
           else if (baseMessage->getType() == core::MessageType::UserRenamed)
           {
-            auto userRenamedMessage = std::static_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
+            auto userRenamedMessage = std::dynamic_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
             userDataStore.renameUser(userRenamedMessage->getData().id, userRenamedMessage->getData().name);
           }
           else if (baseMessage->getType() == core::MessageType::UserConnected)
           {
-            auto userConnectedMessage = std::static_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
+            auto userConnectedMessage = std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
             selfType->userRatingWatcher.userConnected(userConnectedMessage->getData().id, connection);
           }
           else if (baseMessage->getType() == core::MessageType::UserDisconnected)
           {
-            auto userDisconnectedMessage = std::static_pointer_cast<core::Message<core::UserIdInformation>>(
+            auto userDisconnectedMessage = std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(
                     baseMessage);
             selfType->userRatingWatcher.userDisconnected(userDisconnectedMessage->getData().id);
           }
           else if (baseMessage->getType() == core::MessageType::UserDealWon)
           {
-            auto userDealWonMessage = std::static_pointer_cast<core::Message<core::DealInformation>>(baseMessage);
+            auto userDealWonMessage = std::dynamic_pointer_cast<core::Message<core::DealInformation>>(baseMessage);
             userDealDataStore.addDeal(userDealWonMessage->getData());
           }
           else

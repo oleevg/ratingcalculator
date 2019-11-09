@@ -37,7 +37,7 @@ namespace rating_calculator {
 BOOST_AUTO_TEST_SUITE(EnumConverter)
 
 
-  BOOST_AUTO_TEST_CASE(EnumToString_equal_true)
+  BOOST_AUTO_TEST_CASE(Should_convert_enum_to_string)
   {
     const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
 
@@ -48,18 +48,7 @@ BOOST_AUTO_TEST_SUITE(EnumConverter)
     BOOST_REQUIRE(value2 == "value2");
   }
 
-  BOOST_AUTO_TEST_CASE(StringToEnum_equal_true)
-  {
-    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
-
-    auto value1 = enumConverter.toEnum("value1");
-    auto value2 = enumConverter.toEnum("value2");
-
-    BOOST_REQUIRE(value1 == TestEnum::Value1);
-    BOOST_REQUIRE(value2 == TestEnum::Value2);
-  }
-
-  BOOST_AUTO_TEST_CASE(StringToEnumInCase_equal_true)
+  BOOST_AUTO_TEST_CASE(Should_convert_incase_string_to_enum)
   {
     const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
 

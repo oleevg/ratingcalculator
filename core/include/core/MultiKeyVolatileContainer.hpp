@@ -13,7 +13,8 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
-#include <sstream>
+
+#include <boost/format.hpp>
 
 #include "BaseException.hpp"
 
@@ -212,10 +213,7 @@ namespace rating_calculator {
           auto accessIter = accessData_.find(value.*accessKey);
           if(accessIter == accessData_.end())
           {
-            std::stringstream strStream;
-            strStream << "Item with access key '" << value.*accessKey << "' is not present in access container.";
-
-            throw core::BaseException(strStream.str());
+            throw core::BaseException((boost::format("Item with access key '%s' is not present in the access container.") % value.*accessKey).str());
           }
 
           auto sortIter = findInSortContainer(accessIter->second);
@@ -237,10 +235,7 @@ namespace rating_calculator {
           {
             if(iter == sortData_.end())
             {
-              std::stringstream strStream;
-              strStream << "Item with access key '" << *valuePtr.*accessKey << "' is not present in sort container.";
-
-              throw core::BaseException(strStream.str());
+              throw core::BaseException((boost::format("Item with access key '%s' is not present in the sort container.") % *valuePtr.*accessKey).str());
             }
 
             ++iter;
@@ -255,10 +250,7 @@ namespace rating_calculator {
 
           if(accessIter == accessData_.end())
           {
-            std::stringstream strStream;
-            strStream << "Item with access key '" << key << "' is not present in access container.";
-
-            throw core::BaseException(strStream.str());
+            throw core::BaseException((boost::format("Item with access key '%s' is not present in access container.") % key).str());
           }
 
           return findInSortContainer(accessIter->second);

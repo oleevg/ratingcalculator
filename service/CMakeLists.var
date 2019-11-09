@@ -47,7 +47,6 @@ set(external_libraries
     ${Boost_SERIALIZATION_LIBRARY}
     )
 
-
 set(libraries_test
     )
 

@@ -57,12 +57,11 @@ struct MultiKeyVolatileContainerFixture {
   }
 
   MultiKeyContainer multiKeyContainer;
-
 };
 
 BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFixture)
 
-  BOOST_AUTO_TEST_CASE(Insert_item_must_be_sorted_true)
+  BOOST_AUTO_TEST_CASE(Should_sort_items_when_inserted)
   {
     for (size_t i = 0; i < 10; ++i)
     {
@@ -74,7 +73,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
     }
   }
 
-  BOOST_AUTO_TEST_CASE(Update_item_must_be_sorted_true)
+  BOOST_AUTO_TEST_CASE(Should_sort_items_when_updated)
   {
     size_t position = 8;
     multiKeyContainer.insert(UserData(8, 0.9));
@@ -84,7 +83,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
     BOOST_TEST(positionedData.value.amount == (0.9 + 0.1), boost::test_tools::tolerance(0.001));
   }
 
-  BOOST_AUTO_TEST_CASE(GetHeadPositions_compare_true)
+  BOOST_AUTO_TEST_CASE(Should_return_sorted_head_positions)
   {
     size_t nPositions = 9;
     auto positionedDataContainer = multiKeyContainer.getHeadPositions(nPositions);
@@ -96,7 +95,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
     }
   }
 
-  BOOST_AUTO_TEST_CASE(GetHighPositions_compare_true)
+  BOOST_AUTO_TEST_CASE(Should_return_sorted_relative_high_positions)
   {
     size_t nPositions = 5;
     size_t position = 4;
@@ -111,7 +110,7 @@ BOOST_FIXTURE_TEST_SUITE(MultiKeyVolatileContainer, MultiKeyVolatileContainerFix
     }
   }
 
-  BOOST_AUTO_TEST_CASE(GetLowPositions_compare_true)
+  BOOST_AUTO_TEST_CASE(Should_return_sorted_relative_low_positions)
   {
     size_t nPositions = 5;
     size_t position = 4;

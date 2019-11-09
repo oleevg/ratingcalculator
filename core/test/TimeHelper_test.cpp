@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(TimeHelper)
 
   namespace core = rating_calculator::core;
 
-  BOOST_AUTO_TEST_CASE(GetPrevious_fixed_date_true)
+  BOOST_AUTO_TEST_CASE(Should_get_previous_week_day)
   {
     // Sun Jan 14 2018 ->
     std::tm tmTime;
@@ -42,7 +42,37 @@ BOOST_AUTO_TEST_SUITE(TimeHelper)
     std::time_t resultTime = std::chrono::system_clock::to_time_t(timePoint);
     std::time_t expectedResultTime = timegm(&tmExpectedTime);
 
-    BOOST_REQUIRE( resultTime == expectedResultTime);
+    BOOST_REQUIRE(resultTime == expectedResultTime);
+  }
+
+  BOOST_AUTO_TEST_CASE(Should_get_next_week_day)
+  {
+    // Sun Jan 14 2018 ->
+    std::tm tmTime;
+    tmTime.tm_sec = 12;
+    tmTime.tm_min = 12;
+    tmTime.tm_hour = 12;
+
+    tmTime.tm_mon = 0;
+    tmTime.tm_mday = 14;
+    tmTime.tm_year = 118;
+
+    // Fri Jan 19 2018
+    std::tm tmExpectedTime;
+    tmExpectedTime.tm_sec = 0;
+    tmExpectedTime.tm_min = 0;
+    tmExpectedTime.tm_hour = 0;
+
+    tmExpectedTime.tm_mon = 0;
+    tmExpectedTime.tm_mday = 19;
+    tmExpectedTime.tm_year = 118;
+
+    auto timePoint = core::TimeHelper::getNextWeekDay(std::chrono::system_clock::from_time_t(timegm(&tmTime)), core::TimeHelper::WeekDay::Friday);
+
+    std::time_t resultTime = std::chrono::system_clock::to_time_t(timePoint);
+    std::time_t expectedResultTime = timegm(&tmExpectedTime);
+
+    BOOST_REQUIRE(resultTime == expectedResultTime);
   }
 
 BOOST_AUTO_TEST_SUITE_END()

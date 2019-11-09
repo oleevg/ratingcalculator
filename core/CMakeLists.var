@@ -46,6 +46,7 @@ set(libraries
     )
 
 set(external_libraries
+    ${Boost_SYSTEM_LIBRARY}
     )
 
 set(libraries_test

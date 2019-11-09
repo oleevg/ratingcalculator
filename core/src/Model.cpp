@@ -11,19 +11,16 @@ namespace rating_calculator {
 
   namespace core {
 
+    BaseMessage::BaseMessage(MessageType type) :
+            type_(type)
+    {}
 
-      BaseMessage::BaseMessage(MessageType type):
-      type_(type)
-      {
+    MessageType BaseMessage::getType() const
+    {
+      return type_;
+    }
 
-      }
-
-      MessageType BaseMessage::getType() const
-      {
-        return type_;
-      }
-
-    template <>
+    template<>
     EnumConverter<MessageType>::EnumConverter()
     {
       addConversion(MessageType::UserRegistered, "user_registered");

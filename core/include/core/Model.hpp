@@ -38,6 +38,7 @@ namespace rating_calculator {
 
       public:
         MessageType getType() const;
+        virtual ~BaseMessage() = default;
 
       protected:
         BaseMessage(MessageType type);

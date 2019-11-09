@@ -12,10 +12,8 @@ namespace rating_calculator {
   namespace core {
 
     BaseException::BaseException(const std::string& errorMessage, const std::string& header) :
-    errorMessage_(header + errorMessage)
-    {
-
-    }
+            errorMessage_(header + errorMessage)
+    {}
 
     const char* BaseException::what() const noexcept
     {
