@@ -155,7 +155,7 @@ namespace rating_calculator {
       }
       else if (dealInformation.timestamp >= std::chrono::system_clock::to_time_t(endTime_))
       {
-        mdebug_notice("Ignoring deal as its timestamp > startTime");
+        mdebug_notice("Ignoring deal as its timestamp > endTime");
       }
       else
       {

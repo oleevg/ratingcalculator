@@ -50,7 +50,7 @@ namespace rating_calculator {
 
           auto userId = JsonDeserializer<core::UserIdentifier>::Parse(value.get_child("userId"));
           auto timestamp = JsonDeserializer<uint64_t>::Parse(value.get_child("timestamp"));
-          auto amount = JsonDeserializer<float >::Parse(value.get_child("amount"));
+          auto amount = JsonDeserializer<float>::Parse(value.get_child("amount"));
 
           return core::DealInformation(userId, timestamp, amount);
         }

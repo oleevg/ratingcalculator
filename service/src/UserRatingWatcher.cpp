@@ -22,13 +22,13 @@ namespace rating_calculator {
             userIdentifier(_userIdentifier), connection(_connection), connected(true)
     {}
 
-    UserRatingWatcher::UserRatingWatcher(int ratingUpdateTimeout, size_t nRatingPositions,
-                                         const core::IDataStoreFactory::Ptr& dataStoreFactory,
-                                         const webapi::transport::WsProtocol<WsServer>::Ptr& protocol)
-            : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions),
-              dataStoreFactory_(dataStoreFactory),
-              protocol_(protocol), stopped_(false),
-              userRatingProvider_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
+    UserRatingWatcher::UserRatingWatcher(const std::chrono::seconds &ratingUpdateTimeout, size_t nRatingPositions,
+                                         const core::IDataStoreFactory::Ptr &dataStoreFactory,
+                                         const webapi::transport::WsProtocol<WsServer>::Ptr &protocol)
+        : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions),
+          dataStoreFactory_(dataStoreFactory),
+          protocol_(protocol), stopped_(false),
+          userRatingProvider_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
     {}
 
     void UserRatingWatcher::start()
@@ -69,7 +69,7 @@ namespace rating_calculator {
             if(!stopped_.load())
             {
               std::unique_lock<std::mutex> stopLock(stopMutex_);
-              stopCondVar_.wait_for(stopLock, std::chrono::seconds(ratingUpdateTimeout_));
+              stopCondVar_.wait_for(stopLock, ratingUpdateTimeout_);
             }
           }
         });

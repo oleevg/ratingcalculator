@@ -23,7 +23,7 @@ namespace rating_calculator {
 
   namespace service {
 
-    ApplicationService::ApplicationService(int port, int timeout, size_t threadPoolSize) :
+    ApplicationService::ApplicationService(int port, const std::chrono::seconds& timeout, size_t threadPoolSize) :
             protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()),
             dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()),
             userRatingWatcher(timeout, 10, dataStoreFactory, protocol)

@@ -25,13 +25,6 @@ struct UserData {
   float amount;
 };
 
-struct FloatComparator {
-  bool operator()(float lhs, float rhs)
-  {
-
-  }
-};
-
 typedef  rating_calculator::core::MultiKeyVolatileContainer<uint64_t, float, UserData, &UserData::id, &UserData::amount> MultiKeyContainer;
 
 struct MultiKeyVolatileContainerFixture {

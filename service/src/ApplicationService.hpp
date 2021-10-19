@@ -8,6 +8,7 @@
 #ifndef RATINGCALCULATOR_APPLICATIONSERVICE_HPP
 #define RATINGCALCULATOR_APPLICATIONSERVICE_HPP
 
+#include <chrono>
 #include <memory>
 
 #include <boost/enable_shared_from_this.hpp>
@@ -37,7 +38,7 @@ namespace rating_calculator {
          * @param timeout User rating update timeout in seconds.
          * @param threadPoolSize The service's thread pool size.
          */
-        ApplicationService(int port, int timeout, size_t threadPoolSize);
+        ApplicationService(int port, const std::chrono::seconds &timeout, size_t threadPoolSize);
 
         /**
          * @brief Starts the application life cycle.

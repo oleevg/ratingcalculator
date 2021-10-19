@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <atomic>
+#include <chrono>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -58,9 +59,9 @@ namespace rating_calculator {
          * @param dataStoreFactory The instance of factory class responsible for creating implementations of core data store interfaces.
          * @param protocol The instance of WsProtocol class used for transport channel handling.
          */
-        UserRatingWatcher(int ratingUpdateTimeout, size_t nRatingPositions,
-                                  const core::IDataStoreFactory::Ptr& dataStoreFactory,
-                                  const webapi::transport::WsProtocol<WsServer>::Ptr& protocol);
+        UserRatingWatcher(const std::chrono::seconds& ratingUpdateTimeout, size_t nRatingPositions,
+                          const core::IDataStoreFactory::Ptr &dataStoreFactory,
+                          const webapi::transport::WsProtocol<WsServer>::Ptr &protocol);
 
         /**
          * @brief Handles user connection event.
@@ -92,7 +93,7 @@ namespace rating_calculator {
 
       private:
         size_t nRatingPositions_;
-        int ratingUpdateTimeout_;
+        std::chrono::seconds ratingUpdateTimeout_;
         webapi::transport::WsProtocol<WsServer>::Ptr protocol_;
 
         std::thread ratingUpdateThread_;
