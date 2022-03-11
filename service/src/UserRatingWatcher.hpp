@@ -105,7 +105,6 @@ namespace rating_calculator {
         std::condition_variable stopCondVar_;
 
         tempstore::UserRatingProvider userRatingProvider_;
-        core::IDataStoreFactory::Ptr dataStoreFactory_;
 
         std::atomic<bool> stopped_;
     };

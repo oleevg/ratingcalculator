@@ -26,7 +26,6 @@ namespace rating_calculator {
                                          const core::IDataStoreFactory::Ptr &dataStoreFactory,
                                          const webapi::transport::WsProtocol<WsServer>::Ptr &protocol)
         : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions),
-          dataStoreFactory_(dataStoreFactory),
           protocol_(protocol), stopped_(false),
           userRatingProvider_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
     {}

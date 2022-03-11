@@ -26,6 +26,7 @@ set(sources
     )
 
 set(tests
+    test/UserDataStore_test.cpp
     )
 
 set(definitions
@@ -41,4 +42,5 @@ set(external_libraries
 
 set(libraries_test
     ratingCalculator_core
+    ratingCalculator_tempstore
     )
