@@ -146,8 +146,8 @@ set(${project_name}_${module_name}_TESTS ${tests}
 #
 if (${project_name}_${module_name}_TESTS)
   #ADD_DEFINITIONS(-D_GLIBCXX_USE_CXX11_ABI=0)
-  ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
-  set(Boost_USE_STATIC_LIBS OFF)
+  #ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
+  set(Boost_USE_STATIC_LIBS ON)
   set(Boost_MULTITHREADED ON)
   if(WIN32)
     if (MSVC)
