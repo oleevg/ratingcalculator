@@ -1,0 +1,27 @@
+# Build directories
+build/
+
+# tempstore/test/
+
+# IDE/project settings
+.idea/
+.vscode/
+
+# Cache files
+.cache/
+
+# Documentation output
+docs/html/
+docs/latex/
+
+# OS-specific files (optional, but usually helpful)
+*.swp
+*.DS_Store
+Thumbs.db
+
+# Compiled binaries (optional if you have any)
+*.o
+*.a
+*.so
+*.exe
+*.out
