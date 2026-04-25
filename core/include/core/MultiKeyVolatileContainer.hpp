@@ -208,7 +208,7 @@ namespace rating_calculator {
         }
 
       private:
-        typename SortContainer::iterator getSortNode(const Value& value) const
+        typename SortContainer::iterator getSortNode(const Value& value)
         {
           auto accessIter = accessData_.find(value.*accessKey);
           if(accessIter == accessData_.end())
@@ -217,23 +217,23 @@ namespace rating_calculator {
           }
 
           auto sortIter = findInSortContainer(accessIter->second);
-
+          return sortIter;
         }
 
         typename SortContainer::iterator findInSortContainer(const ValuePtr& valuePtr)
         {
           auto result = static_cast<const MultiKeyVolatileContainer*>(this)->findInSortContainer(valuePtr);
-          size_t dist = std::distance(sortData_.begin(), result);
+          size_t dist = std::distance(sortData_.cbegin(), result);
 
           return (sortData_.begin() + dist);
         }
 
         typename SortContainer::const_iterator findInSortContainer(const ValuePtr& valuePtr) const
         {
-          auto iter = std::lower_bound(sortData_.begin(), sortData_.end(), valuePtr, CompPtr());
+          auto iter = std::lower_bound(sortData_.cbegin(), sortData_.cend(), valuePtr, CompPtr());
           while ((**iter).*accessKey != *valuePtr.*accessKey)
           {
-            if(iter == sortData_.end())
+            if(iter == sortData_.cend())
             {
               throw core::BaseException((boost::format("Item with access key '%s' is not present in the sort container.") % *valuePtr.*accessKey).str());
             }
@@ -248,7 +248,7 @@ namespace rating_calculator {
         {
           auto accessIter = accessData_.find(key);
 
-          if(accessIter == accessData_.end())
+          if(accessIter == accessData_.cend())
           {
             throw core::BaseException((boost::format("Item with access key '%s' is not present in access container.") % key).str());
           }

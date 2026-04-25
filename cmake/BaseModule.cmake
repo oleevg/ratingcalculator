@@ -145,6 +145,8 @@ set(${project_name}_${module_name}_TESTS ${tests}
 # Add test module if tests sources are specified and skip this step overwise.
 #
 if (${project_name}_${module_name}_TESTS)
+  #ADD_DEFINITIONS(-D_GLIBCXX_USE_CXX11_ABI=0)
+  #ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_MULTITHREADED ON)
   if(WIN32)

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <iostream>
+#include <chrono>
 
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
@@ -85,7 +86,7 @@ namespace rating_calculator {
         throw core::BaseException("The number of service's threads can't be less than one. Please provide some positive integer value.");
       }
 
-      appService = std::make_shared<ApplicationService>(port, period, threadPoolSize);
+      appService = std::make_shared<ApplicationService>(port, std::chrono::seconds(period), threadPoolSize);
     }
   }
 

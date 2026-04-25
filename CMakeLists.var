@@ -23,6 +23,9 @@ set(modules
 
 set(CMAKE_BUILD_TYPE Debug)
 set(Boost_USE_STATIC_LIBS ON)
+#ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
+#ADD_DEFINITIONS(-D_GLIBCXX_USE_CXX11_ABI=0)
+set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_MULTITHREADED ON)
 
 if(WIN32)
@@ -33,7 +36,7 @@ if(WIN32)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
 
-find_package(Boost 1.64.0 COMPONENTS system program_options serialization REQUIRED)
+find_package(Boost COMPONENTS system program_options serialization unit_test_framework REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 find_package(OpenSSL REQUIRED)

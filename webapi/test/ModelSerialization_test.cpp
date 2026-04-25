@@ -80,8 +80,8 @@ BOOST_AUTO_TEST_SUITE (JsonSerializer)
       core::UserRelativeRating userRelativeRating(userPosition, headPositions, highPositions, lowPositions);
       core::Message<core::UserRelativeRating> message(core::MessageType::UserRelativeRating, userRelativeRating);
 
-      auto tree = serialization::JsonSerializer<decltype(message)>::Serialize(message);
-      auto messageDeserialized = serialization::JsonDeserializer<decltype(message)>::Parse(tree);
+      auto tree = JsSerializer<decltype(message)>::Serialize(message);
+      auto messageDeserialized = JsDeserializer<decltype(message)>::Parse(tree);
 
       BOOST_REQUIRE(message == messageDeserialized);
     }
