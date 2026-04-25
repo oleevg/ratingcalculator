@@ -1,0 +1,214 @@
+classDiagram
+    %% ─── Core: Data Types ───────────────────────────────────────────────────
+    class UserInformation {
+        +UserIdentifier id
+        +string name
+    }
+    class DealInformation {
+        +UserIdentifier userId
+        +uint64_t timestamp
+        +float amount
+    }
+    class UserPosition {
+        +UserInformation userInformation
+        +size_t position
+        +float amount
+    }
+    class UserRelativeRating {
+        +UserPosition userPosition
+        +UserPositionsCollection headPositions
+        +UserPositionsCollection highPositions
+        +UserPositionsCollection lowPositions
+    }
+
+    UserPosition *-- UserInformation
+    UserRelativeRating *-- UserPosition
+
+    %% ─── Core: Message Model ─────────────────────────────────────────────────
+    class MessageType {
+        <<enumeration>>
+        UserRegistered
+        UserRenamed
+        UserConnected
+        UserDisconnected
+        UserDealWon
+        UserRelativeRating
+    }
+    class BaseMessage {
+        <<abstract>>
+        -MessageType type_
+        +getType() MessageType
+    }
+    class Message~T~ {
+        -T data_
+        +getData() T const&
+    }
+
+    Message~T~ --|> BaseMessage
+
+    %% ─── Core: Interfaces ────────────────────────────────────────────────────
+    class IDataStoreFactory {
+        <<interface>>
+        +getUserDataStore() IUserDataStore&
+        +getUserDealDataStore() IUserDealDataStore&
+    }
+    class IUserDataStore {
+        <<interface>>
+        +addUser(UserInformation) void
+        +renameUser(UserIdentifier, string) void
+        +getUserInformation(UserIdentifier) UserInformation const&
+    }
+    class IUserDealDataStore {
+        <<interface>>
+        +addDeal(DealInformation) void
+        +addDealAddedSlot(slot_type) void
+    }
+
+    IDataStoreFactory --> IUserDataStore : provides
+    IDataStoreFactory --> IUserDealDataStore : provides
+
+    %% ─── Core: MultiKeyVolatileContainer ─────────────────────────────────────
+    class MultiKeyVolatileContainer~AccessKey, SortKey, Value~ {
+        -SortContainer sortData_
+        -AccessContainer accessData_
+        +insert(Value) void
+        +clear() void
+        +getPosition(AccessKey) PositionedData
+        +getHeadPositions(n) PositionedDataContainer
+        +getHighPositions(AccessKey, n) PositionedDataContainer
+        +getLowPositions(AccessKey, n) PositionedDataContainer
+        +isPresent(AccessKey) bool
+    }
+
+    %% ─── TempStore: Implementations ──────────────────────────────────────────
+    class DataStoreFactory {
+        -UserDataStore userDataStore_
+        -UserDealDataStore userDealDataStore_
+        +getUserDataStore() IUserDataStore&
+        +getUserDealDataStore() IUserDealDataStore&
+    }
+    class UserDataStore {
+        -unordered_map users
+        +addUser(UserInformation) void
+        +renameUser(UserIdentifier, string) void
+        +getUserInformation(UserIdentifier) UserInformation const&
+    }
+    class UserDealDataStore {
+        -DealAddedSignal dealAddedSignal
+        +addDeal(DealInformation) void
+        +addDealAddedSlot(slot_type) void
+    }
+
+    DataStoreFactory ..|> IDataStoreFactory
+    UserDataStore ..|> IUserDataStore
+    UserDealDataStore ..|> IUserDealDataStore
+    DataStoreFactory *-- UserDataStore
+    DataStoreFactory *-- UserDealDataStore
+
+    %% ─── TempStore: UserRatingProvider ───────────────────────────────────────
+    class UserRatingProvider {
+        -IDataStoreFactory::Ptr dataStoreFactory_
+        -SortedDealContainer sortedDealContainer_
+        -TimePoint startTime_
+        -TimePoint endTime_
+        -thread watcherThread_
+        +getUserPosition(UserIdentifier) UserPosition
+        +getHeadPositions(n) UserPositionsCollection
+        +getHighPositions(UserIdentifier, n) UserPositionsCollection
+        +getLowPositions(UserIdentifier, n) UserPositionsCollection
+        +addDeal(DealInformation) void
+        +isUserPresent(UserIdentifier) bool
+        +start() void
+        +stop() void
+    }
+
+    UserRatingProvider o-- IDataStoreFactory
+    UserRatingProvider *-- MultiKeyVolatileContainer~AccessKey, SortKey, Value~
+
+    %% ─── WebAPI: Transport ───────────────────────────────────────────────────
+    class WsMessageType {
+        <<enumeration>>
+        Ack
+        Data
+        Error
+    }
+    class WsMessage {
+        -WsMessageType type_
+        -WsMessageIdentifier id_
+        +getType() WsMessageType
+        +getId() WsMessageIdentifier
+    }
+    class WsAck {
+        +WsAck(WsMessageIdentifier)
+    }
+    class WsError {
+        -string errorMessage_
+        -ErrorCode errorCode_
+        +getErrorMessage() string const&
+        +getErrorCode() ErrorCode
+    }
+    class WsData {
+        -BaseMessage::Ptr data_
+        +getData() BaseMessage::Ptr const&
+    }
+
+    WsAck --|> WsMessage
+    WsError --|> WsMessage
+    WsData --|> WsMessage
+    WsData o-- BaseMessage : wraps
+
+    class WsProtocol~ConnectionSide~ {
+        -size_t resendNumber_
+        -int resendTimeout_
+        -ResendMessageStore resendStore_
+        -thread resendStoreThread_
+        +sendMessage(BaseMessage::Ptr, Connection) void
+        +parseMessage(WsMessage, Connection) BaseMessage::Ptr
+        +start() void
+        +stop() void
+    }
+
+    WsProtocol~ConnectionSide~ ..> WsData : sends / receives
+    WsProtocol~ConnectionSide~ ..> WsAck : sends
+    WsProtocol~ConnectionSide~ ..> WsError : sends
+
+    %% ─── WebAPI: Serialization (collapsed) ───────────────────────────────────
+    class JsonSerializer~T~ {
+        <<template>>
+        +Serialize(T) ptree$
+    }
+    class JsonDeserializer~T~ {
+        <<template>>
+        +Parse(ptree) T$
+    }
+
+    JsonSerializer~T~ ..> BaseMessage : specialised for
+    JsonSerializer~T~ ..> WsMessage : specialised for
+    JsonDeserializer~T~ ..> BaseMessage : specialised for
+    JsonDeserializer~T~ ..> WsMessage : specialised for
+
+    %% ─── Service Layer ────────────────────────────────────────────────────────
+    class ApplicationService {
+        -WsServer server
+        -WsProtocol~WsServer~::Ptr protocol_
+        -IDataStoreFactory::Ptr dataStoreFactory_
+        -UserRatingWatcher userRatingWatcher_
+        +run() int
+        -setWsEndpoints() void
+    }
+    class UserRatingWatcher {
+        -UserRatingProvider userRatingProvider_
+        -WsProtocol~WsServer~::Ptr protocol_
+        -UserConnectionCollection userConnections_
+        -thread ratingUpdateThread_
+        +userConnected(UserIdentifier, Connection) void
+        +userDisconnected(UserIdentifier) void
+        +start() void
+        +stop() void
+    }
+
+    ApplicationService *-- UserRatingWatcher
+    ApplicationService o-- IDataStoreFactory
+    ApplicationService o-- WsProtocol~ConnectionSide~
+    UserRatingWatcher *-- UserRatingProvider
+    UserRatingWatcher o-- WsProtocol~ConnectionSide~
