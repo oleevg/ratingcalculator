@@ -44,8 +44,7 @@ namespace rating_calculator {
      * @brief Describes user information.
      */
     struct UserInformation {
-      UserInformation(const UserIdentifier& id_, const std::string& name_) :
-              id(id_), name(name_)
+      UserInformation(const UserIdentifier& id_, const std::string& name_) : id(id_), name(name_)
       {}
 
       bool operator==(const UserInformation& obj) const
@@ -61,8 +60,8 @@ namespace rating_calculator {
      * @brief Describes user deal information.
      */
     struct DealInformation {
-      DealInformation(const UserIdentifier& userId_, uint64_t timestamp_, float amount_) :
-              userId(userId_), timestamp(timestamp_), amount(amount_)
+      DealInformation(const UserIdentifier& userId_, uint64_t timestamp_, float amount_)
+          : userId(userId_), timestamp(timestamp_), amount(amount_)
       {}
 
       bool operator==(const DealInformation& obj) const
@@ -79,8 +78,8 @@ namespace rating_calculator {
      * @brief Describes user rating position.
      */
     struct UserPosition {
-      UserPosition(const UserInformation& userInformation_, size_t position_, float amount_):
-      userInformation(userInformation_), position(position_), amount(amount_)
+      UserPosition(const UserInformation& userInformation_, size_t position_, float amount_)
+          : userInformation(userInformation_), position(position_), amount(amount_)
       {}
 
       bool operator==(const UserPosition& obj) const
@@ -93,23 +92,24 @@ namespace rating_calculator {
       float amount;
     };
 
-
     typedef std::vector<UserPosition> UserPositionsCollection;
 
     /**
      * @brief Describes user relative rating information.
-     * @detailed Includes the specified user rating information as well as head, low and high users rating information in relation to the requested user position.
+     * @detailed Includes the specified user rating information as well as head, low and high users rating information
+     * in relation to the requested user position.
      */
     struct UserRelativeRating {
       UserRelativeRating(const UserPosition& userPosition_, const UserPositionsCollection& headPositions_,
                          const UserPositionsCollection& highPositions_, const UserPositionsCollection& lowPositions_)
-              : userPosition(userPosition_), headPositions(headPositions_), highPositions(highPositions_),
-                lowPositions(lowPositions_)
+          : userPosition(userPosition_), headPositions(headPositions_), highPositions(highPositions_),
+            lowPositions(lowPositions_)
       {}
 
       bool operator==(const UserRelativeRating& obj) const
       {
-        return ((userPosition == obj.userPosition) && (headPositions == obj.headPositions) && (highPositions == obj.highPositions) && (lowPositions == obj.lowPositions));
+        return ((userPosition == obj.userPosition) && (headPositions == obj.headPositions) &&
+                (highPositions == obj.highPositions) && (lowPositions == obj.lowPositions));
       }
 
       UserPosition userPosition;
@@ -118,8 +118,8 @@ namespace rating_calculator {
       UserPositionsCollection lowPositions;
     };
 
-  }
+  } // namespace core
 
-}
+} // namespace rating_calculator
 
-#endif //RATINGCALCULATOR_TYPES_HPP
+#endif // RATINGCALCULATOR_TYPES_HPP

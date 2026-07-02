@@ -18,8 +18,7 @@ namespace rating_calculator {
 
     namespace serialization {
 
-      template<>
-      struct JsonDeserializer<transport::WsError> {
+      template <> struct JsonDeserializer<transport::WsError> {
         static transport::WsError Parse(const boost::property_tree::ptree& tree)
         {
           if (!tree.empty())
@@ -37,8 +36,7 @@ namespace rating_calculator {
         }
       };
 
-      template<>
-      struct JsonDeserializer<transport::WsData> {
+      template <> struct JsonDeserializer<transport::WsData> {
         static transport::WsData Parse(const boost::property_tree::ptree& tree)
         {
           if (!tree.empty())
@@ -54,8 +52,7 @@ namespace rating_calculator {
         }
       };
 
-      template<>
-      struct JsonDeserializer<transport::WsMessage> {
+      template <> struct JsonDeserializer<transport::WsMessage> {
         static transport::WsMessage::Ptr Parse(const boost::property_tree::ptree& tree)
         {
           if (!tree.empty())
@@ -65,15 +62,15 @@ namespace rating_calculator {
             auto type = JsonDeserializer<transport::WsMessageType>::Parse(tree.get_child("type"));
             auto id = JsonDeserializer<transport::WsMessageIdentifier>::Parse(tree.get_child("id"));
 
-            if(type == transport::WsMessageType::Ack)
+            if (type == transport::WsMessageType::Ack)
             {
               result = std::make_shared<transport::WsAck>(id);
             }
-            else if(type == transport::WsMessageType::Error)
+            else if (type == transport::WsMessageType::Error)
             {
               result = std::make_shared<transport::WsError>(JsonDeserializer<transport::WsError>::Parse(tree));
             }
-            else if(type == transport::WsMessageType::Data)
+            else if (type == transport::WsMessageType::Data)
             {
               result = std::make_shared<transport::WsData>(JsonDeserializer<transport::WsData>::Parse(tree));
             }
@@ -85,10 +82,10 @@ namespace rating_calculator {
         }
       };
 
-    }
+    } // namespace serialization
 
-  }
+  } // namespace webapi
 
-}
+} // namespace rating_calculator
 
-#endif //RATINGCALCULATOR_JSONDESERIALIZERWSMESSAGE_HPP
+#endif // RATINGCALCULATOR_JSONDESERIALIZERWSMESSAGE_HPP

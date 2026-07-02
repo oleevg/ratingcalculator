@@ -28,5 +28,5 @@ namespace rating_calculator {
       return userDealDataStore;
     }
 
-  }
-}
+  } // namespace tempstore
+} // namespace rating_calculator

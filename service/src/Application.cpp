@@ -29,13 +29,11 @@ namespace rating_calculator {
       {
         parseArguments(argc, argv);
         rc = appService->run();
-      }
-      catch (const core::BaseException& exc)
+      } catch (const core::BaseException& exc)
       {
         mdebug_error(exc.what());
         rc = -1;
-      }
-      catch(const std::exception& exc)
+      } catch (const std::exception& exc)
       {
         mdebug_error("Unknown error occurred. %s", exc.what());
         rc = -1;
@@ -53,41 +51,44 @@ namespace rating_calculator {
       const int periodDefault = 5;
       const size_t threadPoolSizeDefault = 5;
 
-      options::options_description optionDescription((boost::format("Usage: %s [options]... \nOptions") % argv[0]).str());
+      options::options_description optionDescription(
+          (boost::format("Usage: %s [options]... \nOptions") % argv[0]).str());
 
       int port = portDefault;
       int period = periodDefault;
       size_t threadPoolSize = threadPoolSizeDefault;
 
-      optionDescription.add_options()
-              ("port,p", options::value<int>(&port)->default_value(portDefault), "The port number to listen.")
-              ("period,t", options::value<int>(&period)->default_value(periodDefault), "Rating update period in seconds.")
-              ("threads", options::value<size_t>(&threadPoolSize)->default_value(threadPoolSizeDefault), "The service's thread pool size.")
-              ("help,h", "As it says.");
+      optionDescription.add_options()("port,p", options::value<int>(&port)->default_value(portDefault),
+                                      "The port number to listen.")(
+          "period,t", options::value<int>(&period)->default_value(periodDefault), "Rating update period in seconds.")(
+          "threads", options::value<size_t>(&threadPoolSize)->default_value(threadPoolSizeDefault),
+          "The service's thread pool size.")("help,h", "As it says.");
 
       options::variables_map variableMap;
 
       options::store(options::parse_command_line(argc, argv, optionDescription), variableMap);
       options::notify(variableMap);
 
-      if(variableMap.count("help"))
+      if (variableMap.count("help"))
       {
         std::cout << optionDescription << "\n";
         exit(0);
       }
 
-      if(period <= 0)
+      if (period <= 0)
       {
-        throw core::BaseException("Negative or zero timeout values are not supported. Please provide some positive integer value.");
+        throw core::BaseException(
+            "Negative or zero timeout values are not supported. Please provide some positive integer value.");
       }
 
-      if(threadPoolSize < 1)
+      if (threadPoolSize < 1)
       {
-        throw core::BaseException("The number of service's threads can't be less than one. Please provide some positive integer value.");
+        throw core::BaseException(
+            "The number of service's threads can't be less than one. Please provide some positive integer value.");
       }
 
       appService = std::make_shared<ApplicationService>(port, std::chrono::seconds(period), threadPoolSize);
     }
-  }
+  } // namespace service
 
-}
+} // namespace rating_calculator

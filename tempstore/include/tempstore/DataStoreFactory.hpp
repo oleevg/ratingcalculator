@@ -15,15 +15,14 @@ namespace rating_calculator {
   namespace tempstore {
 
     class DataStoreFactory : public core::IDataStoreFactory {
-      public:
-        core::IUserDataStore& getUserDataStore() override;
+    public:
+      core::IUserDataStore& getUserDataStore() override;
 
-        core::IUserDealDataStore& getUserDealDataStore() override;
+      core::IUserDealDataStore& getUserDealDataStore() override;
     };
 
-  }
+  } // namespace tempstore
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_DATASTORE_HPP
+#endif // RATINGCALCULATOR_DATASTORE_HPP

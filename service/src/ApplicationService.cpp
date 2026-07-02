@@ -23,10 +23,10 @@ namespace rating_calculator {
 
   namespace service {
 
-    ApplicationService::ApplicationService(int port, const std::chrono::seconds& timeout, size_t threadPoolSize) :
-            protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()),
-            dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()),
-            userRatingWatcher(timeout, 10, dataStoreFactory, protocol)
+    ApplicationService::ApplicationService(int port, const std::chrono::seconds& timeout, size_t threadPoolSize)
+        : protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()),
+          dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()),
+          userRatingWatcher(timeout, 10, dataStoreFactory, protocol)
     {
       server.config.port = port;
       server.config.thread_pool_size = threadPoolSize;
@@ -34,11 +34,12 @@ namespace rating_calculator {
 
     void ApplicationService::setWsEndpoints()
     {
-      auto &echo = server.endpoint["^/rating/?$"];
+      auto& echo = server.endpoint["^/rating/?$"];
 
       auto selfType = shared_from_this();
 
-      echo.on_message = [selfType](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message)
+      echo.on_message =
+          [selfType](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message)
       {
         try
         {
@@ -70,8 +71,8 @@ namespace rating_calculator {
           }
           else if (baseMessage->getType() == core::MessageType::UserDisconnected)
           {
-            auto userDisconnectedMessage = std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(
-                    baseMessage);
+            auto userDisconnectedMessage =
+                std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
             selfType->userRatingWatcher.userDisconnected(userDisconnectedMessage->getData().id);
           }
           else if (baseMessage->getType() == core::MessageType::UserDealWon)
@@ -85,28 +86,31 @@ namespace rating_calculator {
             mdebug_warn("Skip unsupported message type '%s' processing.",
                         enumConverter.toString(baseMessage->getType()).c_str());
           }
-        }
-        catch(const core::BaseException& exc)
+        } catch (const core::BaseException& exc)
         {
           mdebug_error("%s", exc.what());
-        }
-        catch(const std::exception& exc)
+        } catch (const std::exception& exc)
         {
           mdebug_error("Unknown error occurred: %s", exc.what());
         }
-
       };
 
-      echo.on_open = [](std::shared_ptr<WsServer::Connection> connection) {
-        mdebug_info("Client connected: %s:%d (0x%x)", connection->remote_endpoint_address().c_str(), connection->remote_endpoint_port(), connection.get());
+      echo.on_open = [](std::shared_ptr<WsServer::Connection> connection)
+      {
+        mdebug_info("Client connected: %s:%d (0x%x)", connection->remote_endpoint_address().c_str(),
+                    connection->remote_endpoint_port(), connection.get());
       };
 
       // See RFC 6455 7.4.1. for status codes
-      echo.on_close = [](std::shared_ptr<WsServer::Connection> connection, int status, const std::string & /*reason*/) {
-        mdebug_info("Connection %s:%d (0x%x) closed with status code: %d.", connection->remote_endpoint_address().c_str(), connection->remote_endpoint_port(), connection.get(), status);
+      echo.on_close = [](std::shared_ptr<WsServer::Connection> connection, int status, const std::string& /*reason*/)
+      {
+        mdebug_info("Connection %s:%d (0x%x) closed with status code: %d.",
+                    connection->remote_endpoint_address().c_str(), connection->remote_endpoint_port(), connection.get(),
+                    status);
       };
 
-     echo.on_error = [selfType](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
+      echo.on_error = [selfType](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code& ec)
+      {
         mdebug_error("Error in connection 0x%x. Error: %s (%d).", connection.get(), ec.message().c_str(), ec);
         selfType->server.stop();
       };
@@ -118,9 +122,11 @@ namespace rating_calculator {
 
       auto selfCopy = shared_from_this();
 
-      std::thread serverThread([selfCopy]() {
-        selfCopy->server.start();
-      });
+      std::thread serverThread(
+          [selfCopy]()
+          {
+            selfCopy->server.start();
+          });
 
       mdebug_info("Listener started.");
 
@@ -135,6 +141,6 @@ namespace rating_calculator {
       return 0;
     }
 
-  }
+  } // namespace service
 
-}
+} // namespace rating_calculator

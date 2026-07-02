@@ -15,17 +15,16 @@ namespace rating_calculator {
   namespace tempstore {
 
     class UserDealDataStore : public core::IUserDealDataStore {
-      public:
-        void addDeal(const core::DealInformation& dealInformation) override;
+    public:
+      void addDeal(const core::DealInformation& dealInformation) override;
 
-        void addDealAddedSlot(const core::DealAddedSignal::slot_type& slot) override;
+      void addDealAddedSlot(const core::DealAddedSignal::slot_type& slot) override;
 
-      private:
-        core::DealAddedSignal dealAddedSignal;
+    private:
+      core::DealAddedSignal dealAddedSignal;
     };
 
-  }
-}
+  } // namespace tempstore
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_USERDEALDATASTORE_HPP
+#endif // RATINGCALCULATOR_USERDEALDATASTORE_HPP

@@ -22,45 +22,44 @@ namespace rating_calculator {
      * @brief Helper class to work with time and date.
      */
     class TimeHelper {
-      public:
-        enum class WeekDay : uint8_t {
-            Monday = 1,
-            Tuesday = 2,
-            Wednesday = 3,
-            Thursday = 4,
-            Friday = 5,
-            Saturday = 6,
-            Sunday = 0
-        };
+    public:
+      enum class WeekDay : uint8_t {
+        Monday = 1,
+        Tuesday = 2,
+        Wednesday = 3,
+        Thursday = 4,
+        Friday = 5,
+        Saturday = 6,
+        Sunday = 0
+      };
 
-      public:
-        /**
-         * @brief Provides information about the previous week day in relation to the specific time point.
-         * @param timePoint Specific time point to find date in relation to.
-         * @param weekDay Specific week day to find.
-         * @return Actual time point corresponding to the previous week day.
-         */
-        static TimePoint getPreviousWeekDay(const TimePoint& timePoint, WeekDay weekDay);
+    public:
+      /**
+       * @brief Provides information about the previous week day in relation to the specific time point.
+       * @param timePoint Specific time point to find date in relation to.
+       * @param weekDay Specific week day to find.
+       * @return Actual time point corresponding to the previous week day.
+       */
+      static TimePoint getPreviousWeekDay(const TimePoint& timePoint, WeekDay weekDay);
 
-        /**
-          * @brief Provides information about the next week day in relation to the specific time point.
-          * @param timePoint Specific time point to find date in relation to.
-          * @param weekDay Specific week day to find.
-          * @return Actual time point corresponding to the next week day.
-          */
-        static TimePoint getNextWeekDay(const TimePoint& timePoint, WeekDay weekDay);
+      /**
+       * @brief Provides information about the next week day in relation to the specific time point.
+       * @param timePoint Specific time point to find date in relation to.
+       * @param weekDay Specific week day to find.
+       * @return Actual time point corresponding to the next week day.
+       */
+      static TimePoint getNextWeekDay(const TimePoint& timePoint, WeekDay weekDay);
 
-        /**
-         * @brief Provides string representation for date.
-         * @param timePoint Time point.
-         * @return Actual string representation.
-         */
-        static std::string toString(const TimePoint& timePoint);
+      /**
+       * @brief Provides string representation for date.
+       * @param timePoint Time point.
+       * @return Actual string representation.
+       */
+      static std::string toString(const TimePoint& timePoint);
     };
 
-  }
+  } // namespace core
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_TIMEHELPER_HPP
+#endif // RATINGCALCULATOR_TIMEHELPER_HPP

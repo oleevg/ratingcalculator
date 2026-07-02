@@ -30,111 +30,110 @@ namespace rating_calculator {
 
     /**
      * @brief Class responsible for storing and providing access to users rating information.
-     * @detailed Rating calculated for the current period starting from the specified week day and ending in specified 'periodDuration' seconds.
+     * @detailed Rating calculated for the current period starting from the specified week day and ending in specified
+     * 'periodDuration' seconds.
      */
     class UserRatingProvider : public boost::noncopyable {
-        struct MultiKeyData {
-          MultiKeyData(const core::UserIdentifier& _id, float _amount):
-          id(_id), amount(_amount)
-          {
+      struct MultiKeyData {
+        MultiKeyData(const core::UserIdentifier& _id, float _amount) : id(_id), amount(_amount)
+        {}
 
-          }
+        core::UserIdentifier id;
+        float amount;
+      };
 
-          core::UserIdentifier id;
-          float amount;
-        };
+      typedef core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id,
+                                              &MultiKeyData::amount>
+          SortedDealContainer;
 
-        typedef core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id, &MultiKeyData::amount> SortedDealContainer;
+    public:
+      /**
+       * @brief ctor.
+       * @param startPeriodDay Start day of rating calculation period.
+       * @param periodDuration Rating calculation period duration in seconds.
+       * @param dataStoreFactory
+       */
+      UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+                         const core::IDataStoreFactory::Ptr& dataStoreFactory);
 
-      public:
-        /**
-         * @brief ctor.
-         * @param startPeriodDay Start day of rating calculation period.
-         * @param periodDuration Rating calculation period duration in seconds.
-         * @param dataStoreFactory
-         */
-        UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
-                            const core::IDataStoreFactory::Ptr& dataStoreFactory);
+      ~UserRatingProvider();
 
-        ~UserRatingProvider();
+      /**
+       * @brief Provides user rating information for the specified user.
+       * @param userIdentifier User identifier to get rating information for.
+       * @return User rating information.
+       */
+      core::UserPosition getUserPosition(const core::UserIdentifier& userIdentifier) const;
 
-        /**
-         * @brief Provides user rating information for the specified user.
-         * @param userIdentifier User identifier to get rating information for.
-         * @return User rating information.
-         */
-        core::UserPosition getUserPosition(const core::UserIdentifier& userIdentifier) const;
+      /**
+       * @brief Provides users rating information for the head rating table positions.
+       * @param nPositions The number of users to be included in the result.
+       * @return Users rating information.
+       */
+      core::UserPositionsCollection getHeadPositions(size_t nPositions) const;
 
-        /**
-         * @brief Provides users rating information for the head rating table positions.
-         * @param nPositions The number of users to be included in the result.
-         * @return Users rating information.
-         */
-        core::UserPositionsCollection getHeadPositions(size_t nPositions) const;
+      /**
+       * @brief Provides users rating information which are higher in rating position than the specified user.
+       * @param userIdentifier User identifier to get rating information relative to.
+       * @param nPositions The number of users to be included in the result.
+       * @return Users rating information.
+       */
+      core::UserPositionsCollection getHighPositions(const core::UserIdentifier& userIdentifier,
+                                                     size_t nPositions) const;
 
-        /**
-         * @brief Provides users rating information which are higher in rating position than the specified user.
-         * @param userIdentifier User identifier to get rating information relative to.
-         * @param nPositions The number of users to be included in the result.
-         * @return Users rating information.
-         */
-        core::UserPositionsCollection
-        getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
+      /**
+       * @brief Provides users rating information which are lower in rating position than the specified user.
+       * @param userIdentifier User identifier to get rating information relative to.
+       * @param nPositions The number of users to be included in the result.
+       * @return Users rating information.
+       */
+      core::UserPositionsCollection getLowPositions(const core::UserIdentifier& userIdentifier,
+                                                    size_t nPositions) const;
 
-        /**
-         * @brief Provides users rating information which are lower in rating position than the specified user.
-         * @param userIdentifier User identifier to get rating information relative to.
-         * @param nPositions The number of users to be included in the result.
-         * @return Users rating information.
-         */
-        core::UserPositionsCollection
-        getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const;
+      /**
+       * @brief Adds deal information to the store.
+       * @param dealInformation
+       */
+      void addDeal(const core::DealInformation& dealInformation);
 
-        /**
-         * @brief Adds deal information to the store.
-         * @param dealInformation
-         */
-        void addDeal(const core::DealInformation& dealInformation);
+      /**
+       * @brief Test for user's information availability.
+       * @param userIdentifier User identifier.
+       * @return True if the user's rating information is available and False otherwise..
+       */
+      bool isUserPresent(const core::UserIdentifier& userIdentifier) const;
 
-        /**
-         * @brief Test for user's information availability.
-         * @param userIdentifier User identifier.
-         * @return True if the user's rating information is available and False otherwise..
-         */
-        bool isUserPresent(const core::UserIdentifier& userIdentifier) const;
+      /**
+       * @brief Starts rating calculation process.
+       */
+      void start();
 
-        /**
-         * @brief Starts rating calculation process.
-         */
-        void start();
+      /**
+       * @brief Stops rating calculation process.
+       */
+      void stop();
 
-        /**
-         * @brief Stops rating calculation process.
-         */
-        void stop();
+    private:
+      void updatePeriod(const core::TimePoint& startTime);
 
-      private:
-        void updatePeriod(const core::TimePoint& startTime);
+    private:
+      core::TimePoint startTime_;
+      core::TimePoint endTime_;
+      uint64_t periodDuration_;
 
-      private:
-        core::TimePoint startTime_;
-        core::TimePoint endTime_;
-        uint64_t periodDuration_;
+      std::thread watcherThread_;
+      mutable std::mutex storeMutex_;
+      std::atomic<bool> stopped_;
 
-        std::thread watcherThread_;
-        mutable std::mutex storeMutex_;
-        std::atomic<bool> stopped_;
+      std::mutex stopMutex_;
+      std::condition_variable stopCondVar_;
 
-        std::mutex stopMutex_;
-        std::condition_variable stopCondVar_;
-
-        core::IDataStoreFactory::Ptr dataStoreFactory_;
-        SortedDealContainer sortedDealContainer_;
+      core::IDataStoreFactory::Ptr dataStoreFactory_;
+      SortedDealContainer sortedDealContainer_;
     };
 
-  }
+  } // namespace tempstore
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_SORTEDUSERDEALSTORE_HPP
+#endif // RATINGCALCULATOR_SORTEDUSERDEALSTORE_HPP

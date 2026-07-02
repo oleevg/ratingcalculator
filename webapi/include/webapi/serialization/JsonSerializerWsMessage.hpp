@@ -30,10 +30,9 @@ namespace rating_calculator {
           return result;
         }
 
-      }
+      } // namespace
 
-      template <>
-      struct JsonSerializer<transport::WsAck> {
+      template <> struct JsonSerializer<transport::WsAck> {
         static boost::property_tree::ptree Serialize(const transport::WsAck& value)
         {
           boost::property_tree::ptree result = SerializeWsMessage(value);
@@ -42,8 +41,7 @@ namespace rating_calculator {
         }
       };
 
-      template <>
-      struct JsonSerializer<transport::WsError> {
+      template <> struct JsonSerializer<transport::WsError> {
         static boost::property_tree::ptree Serialize(const transport::WsError& value)
         {
           boost::property_tree::ptree result = SerializeWsMessage(value);
@@ -58,8 +56,7 @@ namespace rating_calculator {
         }
       };
 
-      template <>
-      struct JsonSerializer<transport::WsData> {
+      template <> struct JsonSerializer<transport::WsData> {
         static boost::property_tree::ptree Serialize(const transport::WsData& value)
         {
           boost::property_tree::ptree result = SerializeWsMessage(value);
@@ -72,23 +69,22 @@ namespace rating_calculator {
         }
       };
 
-      template <>
-      struct JsonSerializer<transport::WsMessage> {
+      template <> struct JsonSerializer<transport::WsMessage> {
         static boost::property_tree::ptree Serialize(const transport::WsMessage& value)
         {
           boost::property_tree::ptree result;
 
-          if(value.getType() == transport::WsMessageType::Ack)
+          if (value.getType() == transport::WsMessageType::Ack)
           {
             auto wsAck = static_cast<const transport::WsAck&>(value);
             result = JsonSerializer<transport::WsAck>::Serialize(wsAck);
           }
-          else if(value.getType() == transport::WsMessageType::Error)
+          else if (value.getType() == transport::WsMessageType::Error)
           {
             auto wsError = static_cast<const transport::WsError&>(value);
             result = JsonSerializer<transport::WsError>::Serialize(wsError);
           }
-          else if(value.getType() == transport::WsMessageType::Data)
+          else if (value.getType() == transport::WsMessageType::Data)
           {
             auto wsData = static_cast<const transport::WsData&>(value);
             result = JsonSerializer<transport::WsData>::Serialize(wsData);
@@ -98,10 +94,10 @@ namespace rating_calculator {
         }
       };
 
-    }
+    } // namespace serialization
 
-  }
+  } // namespace webapi
 
-}
+} // namespace rating_calculator
 
-#endif //RATINGCALCULATOR_JSONSERIALIZERWSMESSAGE_HPP
+#endif // RATINGCALCULATOR_JSONSERIALIZERWSMESSAGE_HPP

@@ -17,21 +17,20 @@ namespace rating_calculator {
   namespace test_client {
 
     class TestUser {
-      public:
-        TestUser(const core::UserIdentifier& id, const std::string& name);
+    public:
+      TestUser(const core::UserIdentifier& id, const std::string& name);
 
-        void setConnected(bool connected);
-        void changeName(const std::string& name);
-        const std::string& getName() const;
-        bool isConnected() const;
+      void setConnected(bool connected);
+      void changeName(const std::string& name);
+      const std::string& getName() const;
+      bool isConnected() const;
 
-      private:
-        core::UserInformation userInformation;
-        bool connected;
+    private:
+      core::UserInformation userInformation;
+      bool connected;
     };
 
-  }
-}
+  } // namespace test_client
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_TESTUSER_HPP
+#endif // RATINGCALCULATOR_TESTUSER_HPP

@@ -23,5 +23,5 @@ namespace rating_calculator {
       dealAddedSignal.connect(slot);
     }
 
-  }
-}
+  } // namespace tempstore
+} // namespace rating_calculator

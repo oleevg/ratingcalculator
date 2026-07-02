@@ -21,27 +21,26 @@ namespace rating_calculator {
   namespace test_client {
 
     class RequestGenerator {
-      public:
-        RequestGenerator(size_t nUsers);
+    public:
+      RequestGenerator(size_t nUsers);
 
-        core::BaseMessage::Ptr generateUserCommonMessage();
-        core::BaseMessage::Ptr generateUserRegisteredMessage();
+      core::BaseMessage::Ptr generateUserCommonMessage();
+      core::BaseMessage::Ptr generateUserRegisteredMessage();
 
-        size_t getRegisteredUsersNumber() const;
+      size_t getRegisteredUsersNumber() const;
 
-        void waitForUsersToRegister();
+      void waitForUsersToRegister();
 
-      private:
-        std::vector<TestUser> users;
-        mutable std::mutex usersMutex;
-        std::condition_variable usersCondVar;
+    private:
+      std::vector<TestUser> users;
+      mutable std::mutex usersMutex;
+      std::condition_variable usersCondVar;
 
-        const size_t nUsersMax;
+      const size_t nUsersMax;
     };
 
-  }
+  } // namespace test_client
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_REQUESTGENERATOR_HPP
+#endif // RATINGCALCULATOR_REQUESTGENERATOR_HPP

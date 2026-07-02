@@ -13,11 +13,8 @@ namespace rating_calculator {
 
     namespace transport {
 
-      WsMessage::WsMessage(WsMessageType type, WsMessageIdentifier id) :
-              type_(type), id_(id)
-      {
-
-      }
+      WsMessage::WsMessage(WsMessageType type, WsMessageIdentifier id) : type_(type), id_(id)
+      {}
 
       WsMessageType WsMessage::getType() const
       {
@@ -30,7 +27,7 @@ namespace rating_calculator {
       }
 
       WsError::WsError(WsMessageIdentifier id, const std::string& errorMessage, ErrorCode errorCode)
-              : WsMessage(WsMessageType::Error, id), errorMessage_(errorMessage), errorCode_(errorCode)
+          : WsMessage(WsMessageType::Error, id), errorMessage_(errorMessage), errorCode_(errorCode)
       {}
 
       const std::string& WsError::getErrorMessage() const
@@ -46,28 +43,27 @@ namespace rating_calculator {
       WsAck::WsAck(WsMessageIdentifier id) : WsMessage(WsMessageType::Ack, id)
       {}
 
-      WsData::WsData(WsMessageIdentifier id, const core::BaseMessage::Ptr& data) : WsMessage(WsMessageType::Data, id),
-                                                                             data_(data)
+      WsData::WsData(WsMessageIdentifier id, const core::BaseMessage::Ptr& data)
+          : WsMessage(WsMessageType::Data, id), data_(data)
       {}
 
       const core::BaseMessage::Ptr& WsData::getData() const
       {
         return data_;
       }
-    }
+    } // namespace transport
 
-  }
+  } // namespace webapi
 
   namespace core {
 
-    template <>
-    EnumConverter<webapi::transport::WsMessageType>::EnumConverter()
+    template <> EnumConverter<webapi::transport::WsMessageType>::EnumConverter()
     {
       addConversion(webapi::transport::WsMessageType::Data, "data");
       addConversion(webapi::transport::WsMessageType::Ack, "ack");
       addConversion(webapi::transport::WsMessageType::Error, "error");
     }
 
-  }
+  } // namespace core
 
-}
+} // namespace rating_calculator

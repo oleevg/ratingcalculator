@@ -11,8 +11,7 @@ namespace rating_calculator {
 
   namespace core {
 
-    BaseMessage::BaseMessage(MessageType type) :
-            type_(type)
+    BaseMessage::BaseMessage(MessageType type) : type_(type)
     {}
 
     MessageType BaseMessage::getType() const
@@ -20,8 +19,7 @@ namespace rating_calculator {
       return type_;
     }
 
-    template<>
-    EnumConverter<MessageType>::EnumConverter()
+    template <> EnumConverter<MessageType>::EnumConverter()
     {
       addConversion(MessageType::UserRegistered, "user_registered");
       addConversion(MessageType::UserRenamed, "user_renamed");
@@ -31,7 +29,6 @@ namespace rating_calculator {
       addConversion(MessageType::UserRelativeRating, "user_rating");
     }
 
-  }
+  } // namespace core
 
-}
-
+} // namespace rating_calculator

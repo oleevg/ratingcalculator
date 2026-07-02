@@ -12,19 +12,19 @@
 namespace rating_calculator {
 
   class ULogWrapper {
-    public:
-      ULogWrapper()
-      {
-        ulog_init();
-      }
+  public:
+    ULogWrapper()
+    {
+      ulog_init();
+    }
 
-      ~ULogWrapper()
-      {
-        ulog_clean();
-      }
+    ~ULogWrapper()
+    {
+      ulog_clean();
+    }
   };
 
-}
+} // namespace rating_calculator
 
 int main(int argc, const char* argv[])
 {

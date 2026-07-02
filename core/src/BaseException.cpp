@@ -11,15 +11,14 @@ namespace rating_calculator {
 
   namespace core {
 
-    BaseException::BaseException(const std::string& errorMessage, const std::string& header) :
-            errorMessage_(header + errorMessage)
+    BaseException::BaseException(const std::string& errorMessage, const std::string& header)
+        : errorMessage_(header + errorMessage)
     {}
 
     const char* BaseException::what() const noexcept
     {
       return errorMessage_.c_str();
     }
-  }
+  } // namespace core
 
-}
-
+} // namespace rating_calculator

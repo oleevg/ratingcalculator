@@ -14,50 +14,44 @@
 
 #include <core/EnumConverter.hpp>
 
-enum class TestEnum : uint8_t {
-    Value1 = 0,
-    Value2 = 1
-};
+enum class TestEnum : uint8_t { Value1 = 0, Value2 = 1 };
 
 namespace rating_calculator {
 
   namespace core {
 
-    template<>
-    rating_calculator::core::EnumConverter<TestEnum>::EnumConverter()
+    template <> rating_calculator::core::EnumConverter<TestEnum>::EnumConverter()
     {
       addConversion(TestEnum::Value1, "value1");
       addConversion(TestEnum::Value2, "value2");
     }
 
-  }
+  } // namespace core
 
-}
+} // namespace rating_calculator
 
 BOOST_AUTO_TEST_SUITE(EnumConverter)
 
+BOOST_AUTO_TEST_CASE(Should_convert_enum_to_string)
+{
+  const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
 
-  BOOST_AUTO_TEST_CASE(Should_convert_enum_to_string)
-  {
-    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
+  const std::string& value1 = enumConverter.toString(TestEnum::Value1);
+  const std::string& value2 = enumConverter.toString(TestEnum::Value2);
 
-    const std::string& value1 = enumConverter.toString(TestEnum::Value1);
-    const std::string& value2 = enumConverter.toString(TestEnum::Value2);
+  BOOST_REQUIRE(value1 == "value1");
+  BOOST_REQUIRE(value2 == "value2");
+}
 
-    BOOST_REQUIRE(value1 == "value1");
-    BOOST_REQUIRE(value2 == "value2");
-  }
+BOOST_AUTO_TEST_CASE(Should_convert_incase_string_to_enum)
+{
+  const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
 
-  BOOST_AUTO_TEST_CASE(Should_convert_incase_string_to_enum)
-  {
-    const auto& enumConverter = rating_calculator::core::EnumConverter<TestEnum>::get_const_instance();
+  auto value1 = enumConverter.toEnum("Value1");
+  auto value2 = enumConverter.toEnum("vALUE2");
 
-    auto value1 = enumConverter.toEnum("Value1");
-    auto value2 = enumConverter.toEnum("vALUE2");
-
-    BOOST_REQUIRE(value1 == TestEnum::Value1);
-    BOOST_REQUIRE(value2 == TestEnum::Value2);
-  }
+  BOOST_REQUIRE(value1 == TestEnum::Value1);
+  BOOST_REQUIRE(value2 == TestEnum::Value2);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
-

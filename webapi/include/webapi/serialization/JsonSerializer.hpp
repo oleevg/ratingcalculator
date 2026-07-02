@@ -22,24 +22,22 @@ namespace rating_calculator {
 
     namespace serialization {
 
-      template<typename T>
-      class ViewTypeOnCompile;
+      template <typename T> class ViewTypeOnCompile;
 
       /**
        * @brief Custom type serializer.
        * @tparam T Custom type to serialize.
        * @tparam Enable
        */
-      template<class T, class Enable = void>
-      struct JsonSerializer {
+      template <class T, class Enable = void> struct JsonSerializer {
         static boost::property_tree::ptree Serialize(const T& value)
         {
-          ViewTypeOnCompile <T> variableNameType;
+          ViewTypeOnCompile<T> variableNameType;
           static_assert(sizeof(T) == -1, "You should specify this template to serialize custom classes.");
         }
       };
 
-      template<class Numeric>
+      template <class Numeric>
       struct JsonSerializer<Numeric, typename std::enable_if<std::is_integral<Numeric>::value>::type> {
         static boost::property_tree::ptree Serialize(Numeric value)
         {
@@ -50,7 +48,7 @@ namespace rating_calculator {
         }
       };
 
-      template<class Float>
+      template <class Float>
       struct JsonSerializer<Float, typename std::enable_if<std::is_floating_point<Float>::value>::type> {
         static boost::property_tree::ptree Serialize(Float value)
         {
@@ -61,8 +59,7 @@ namespace rating_calculator {
         }
       };
 
-      template<class Enum>
-      struct JsonSerializer< Enum, typename std::enable_if<std::is_enum<Enum>::value>::type> {
+      template <class Enum> struct JsonSerializer<Enum, typename std::enable_if<std::is_enum<Enum>::value>::type> {
         static boost::property_tree::ptree Serialize(Enum value)
         {
           boost::property_tree::ptree result;
@@ -72,8 +69,7 @@ namespace rating_calculator {
         }
       };
 
-      template<>
-      struct JsonSerializer<std::string> {
+      template <> struct JsonSerializer<std::string> {
         static boost::property_tree::ptree Serialize(const std::string& value)
         {
           boost::property_tree::ptree result;
@@ -83,8 +79,7 @@ namespace rating_calculator {
         }
       };
 
-      template<class T>
-      struct JsonSerializer<std::vector<T>> {
+      template <class T> struct JsonSerializer<std::vector<T>> {
         static boost::property_tree::ptree Serialize(const std::vector<T>& value)
         {
           boost::property_tree::ptree result;
@@ -98,9 +93,8 @@ namespace rating_calculator {
         }
       };
 
+    } // namespace serialization
+  } // namespace webapi
+} // namespace rating_calculator
 
-    }
-  }
-}
-
-#endif //RATINGCALCULATOR_JSONSERIALIZER_HPP
+#endif // RATINGCALCULATOR_JSONSERIALIZER_HPP

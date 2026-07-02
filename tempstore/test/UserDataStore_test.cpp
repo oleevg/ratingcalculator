@@ -14,48 +14,47 @@
 
 BOOST_AUTO_TEST_SUITE(UserDataStore)
 
-  namespace tempstore = rating_calculator::tempstore;
-  namespace core = rating_calculator::core;
+namespace tempstore = rating_calculator::tempstore;
+namespace core = rating_calculator::core;
 
-  BOOST_AUTO_TEST_CASE(Must_throw_when_asking_for_nonpresent_user)
-  {
-    tempstore::UserDataStore userDataStore;
+BOOST_AUTO_TEST_CASE(Must_throw_when_asking_for_nonpresent_user)
+{
+  tempstore::UserDataStore userDataStore;
 
-    BOOST_REQUIRE_THROW(userDataStore.getUserInformation(123), core::BaseException);
-  }
+  BOOST_REQUIRE_THROW(userDataStore.getUserInformation(123), core::BaseException);
+}
 
-  BOOST_AUTO_TEST_CASE(Should_return_added_user)
-  {
-    tempstore::UserDataStore userDataStore;
+BOOST_AUTO_TEST_CASE(Should_return_added_user)
+{
+  tempstore::UserDataStore userDataStore;
 
-    core::UserInformation userInformation{123, "User123"};
-    userDataStore.addUser(userInformation);
+  core::UserInformation userInformation{123, "User123"};
+  userDataStore.addUser(userInformation);
 
-    const auto& returnedUserInformation = userDataStore.getUserInformation(userInformation.id);
+  const auto& returnedUserInformation = userDataStore.getUserInformation(userInformation.id);
 
-    BOOST_REQUIRE(userInformation == returnedUserInformation);
-  }
+  BOOST_REQUIRE(userInformation == returnedUserInformation);
+}
 
-  BOOST_AUTO_TEST_CASE(Must_throw_when_renaming_for_nonpresent_user)
-  {
-    tempstore::UserDataStore userDataStore;
+BOOST_AUTO_TEST_CASE(Must_throw_when_renaming_for_nonpresent_user)
+{
+  tempstore::UserDataStore userDataStore;
 
-    BOOST_REQUIRE_THROW(userDataStore.renameUser(123, "NewUser123"), core::BaseException);
-  }
+  BOOST_REQUIRE_THROW(userDataStore.renameUser(123, "NewUser123"), core::BaseException);
+}
 
-  BOOST_AUTO_TEST_CASE(Should_rename_user)
-  {
-    tempstore::UserDataStore userDataStore;
+BOOST_AUTO_TEST_CASE(Should_rename_user)
+{
+  tempstore::UserDataStore userDataStore;
 
-    core::UserInformation userInformation{123, "User123"};
-    userDataStore.addUser(userInformation);
-    userDataStore.renameUser(userInformation.id, "NewUser123");
+  core::UserInformation userInformation{123, "User123"};
+  userDataStore.addUser(userInformation);
+  userDataStore.renameUser(userInformation.id, "NewUser123");
 
-    const auto& returnedUserInformation = userDataStore.getUserInformation(userInformation.id);
+  const auto& returnedUserInformation = userDataStore.getUserInformation(userInformation.id);
 
-    BOOST_REQUIRE_EQUAL(userInformation.id, returnedUserInformation.id);
-    BOOST_REQUIRE_EQUAL("NewUser123", returnedUserInformation.name);
-  }
+  BOOST_REQUIRE_EQUAL(userInformation.id, returnedUserInformation.id);
+  BOOST_REQUIRE_EQUAL("NewUser123", returnedUserInformation.name);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
-

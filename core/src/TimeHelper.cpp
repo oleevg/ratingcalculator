@@ -9,13 +9,12 @@
 #include <ratio>
 
 #include <core/TimeHelper.hpp>
-#include <bits/basic_string.h>
 
 namespace rating_calculator {
 
   namespace core {
 
-    typedef std::chrono::duration<int, std::ratio<3600*24>> DurationInDays;
+    typedef std::chrono::duration<int, std::ratio<3600 * 24>> DurationInDays;
 
     TimePoint TimeHelper::getPreviousWeekDay(const TimePoint& timePoint, WeekDay weekDay)
     {
@@ -48,13 +47,13 @@ namespace rating_calculator {
     {
       time_t tTime = std::chrono::system_clock::to_time_t(timePoint);
 
-      struct tm * tmTime = std::gmtime(&tTime);
+      struct tm* tmTime = std::gmtime(&tTime);
       char buffer[80];
 
-      strftime(buffer, sizeof(buffer),"%d-%m-%Y %H:%M:%S", tmTime);
+      strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", tmTime);
 
       return std::string(buffer);
     }
-  }
+  } // namespace core
 
-}
+} // namespace rating_calculator

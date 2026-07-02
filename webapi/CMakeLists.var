@@ -47,7 +47,6 @@ set(libraries
     )
 
 set(external_libraries
-    ${Boost_SYSTEM_LIBRARY}
     ${OPENSSL_LIBRARIES}
     )
 

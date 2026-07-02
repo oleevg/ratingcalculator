@@ -22,9 +22,9 @@ set(modules
     )
 
 set(CMAKE_BUILD_TYPE Debug)
-set(Boost_USE_STATIC_LIBS ON)
-#ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
-#ADD_DEFINITIONS(-D_GLIBCXX_USE_CXX11_ABI=0)
+if(NOT DEFINED BOOST_ROOT)
+  set(BOOST_ROOT "/opt/homebrew/Cellar/boost/1.90.0_1")
+endif()
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_MULTITHREADED ON)
 
@@ -36,7 +36,7 @@ if(WIN32)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
 
-find_package(Boost COMPONENTS system program_options serialization unit_test_framework REQUIRED)
+find_package(Boost CONFIG REQUIRED COMPONENTS program_options serialization unit_test_framework)
 include_directories(${Boost_INCLUDE_DIR})
 
 find_package(OpenSSL REQUIRED)

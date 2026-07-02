@@ -19,7 +19,11 @@ namespace rating_calculator {
     {
       if (users.count(userInformation.id))
       {
-        throw core::BaseException((boost::format("Can't add user with identifier '%d'. User with such identifier have already been registered.") % userInformation.id).str());
+        throw core::BaseException(
+            (boost::format(
+                 "Can't add user with identifier '%d'. User with such identifier have already been registered.") %
+             userInformation.id)
+                .str());
       }
 
       users.insert({userInformation.id, userInformation});
@@ -29,9 +33,12 @@ namespace rating_calculator {
     {
       auto item = users.find(userIdentifier);
 
-      if(item == users.end())
+      if (item == users.end())
       {
-        throw core::BaseException((boost::format("Can't rename user with identifier '%d'. User with such identifier is not registered.") % userIdentifier).str());
+        throw core::BaseException(
+            (boost::format("Can't rename user with identifier '%d'. User with such identifier is not registered.") %
+             userIdentifier)
+                .str());
       }
 
       item->second.name = name;
@@ -41,13 +48,16 @@ namespace rating_calculator {
     {
       auto item = users.find(userIdentifier);
 
-      if(item == users.end())
+      if (item == users.end())
       {
-        throw core::BaseException((boost::format("Can't provide information for user '%d'. User with such identifier is not registered.") % userIdentifier).str());
+        throw core::BaseException(
+            (boost::format("Can't provide information for user '%d'. User with such identifier is not registered.") %
+             userIdentifier)
+                .str());
       }
 
       return item->second;
     }
-  }
+  } // namespace tempstore
 
-  }
+} // namespace rating_calculator

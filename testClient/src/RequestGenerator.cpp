@@ -14,8 +14,7 @@ namespace rating_calculator {
 
   namespace test_client {
 
-    RequestGenerator::RequestGenerator(size_t nUsers) :
-    nUsersMax(nUsers)
+    RequestGenerator::RequestGenerator(size_t nUsers) : nUsersMax(nUsers)
     {
       users.reserve(nUsersMax);
     }
@@ -23,13 +22,15 @@ namespace rating_calculator {
     core::BaseMessage::Ptr RequestGenerator::generateUserCommonMessage()
     {
       static std::mt19937 rg{std::random_device{}()};
-      static std::uniform_int_distribution<size_t> pickMessage(static_cast<uint8_t>(core::MessageType::UserRenamed), static_cast<uint8_t>(core::MessageType::UserDealWon));
+      static std::uniform_int_distribution<size_t> pickMessage(static_cast<uint8_t>(core::MessageType::UserRenamed),
+                                                               static_cast<uint8_t>(core::MessageType::UserDealWon));
 
       core::BaseMessage::Ptr result;
 
       uint8_t type = pickMessage(rg);
 
-      if(type == static_cast<uint8_t>(core::MessageType::UserConnected) || type == static_cast<uint8_t>(core::MessageType::UserDisconnected))
+      if (type == static_cast<uint8_t>(core::MessageType::UserConnected) ||
+          type == static_cast<uint8_t>(core::MessageType::UserDisconnected))
       {
         size_t nUsers = getRegisteredUsersNumber();
 
@@ -37,9 +38,10 @@ namespace rating_calculator {
 
         size_t userId = pickUser(rg);
 
-        if(users[userId].isConnected())
+        if (users[userId].isConnected())
         {
-          result = std::make_shared<core::Message<core::UserIdInformation>>(core::MessageType::UserDisconnected, userId);
+          result =
+              std::make_shared<core::Message<core::UserIdInformation>>(core::MessageType::UserDisconnected, userId);
         }
         else
         {
@@ -48,7 +50,7 @@ namespace rating_calculator {
 
         users[userId].setConnected(!users[userId].isConnected());
       }
-      else if(type == static_cast<uint8_t>(core::MessageType::UserRenamed))
+      else if (type == static_cast<uint8_t>(core::MessageType::UserRenamed))
       {
         size_t nUsers = getRegisteredUsersNumber();
 
@@ -59,9 +61,10 @@ namespace rating_calculator {
         auto& user = users[userId];
         user.changeName(user.getName() + "_");
 
-        result = std::make_shared<core::Message<core::UserInformation>>(core::MessageType::UserRenamed, core::UserInformation(userId, user.getName()));
+        result = std::make_shared<core::Message<core::UserInformation>>(core::MessageType::UserRenamed,
+                                                                        core::UserInformation(userId, user.getName()));
       }
-      else if(type == static_cast<uint8_t>(core::MessageType::UserDealWon))
+      else if (type == static_cast<uint8_t>(core::MessageType::UserDealWon))
       {
         size_t nUsers = getRegisteredUsersNumber();
 
@@ -72,7 +75,8 @@ namespace rating_calculator {
         float amount = pickAmount(rg);
         auto timeStamp = std::chrono::system_clock::now();
 
-        result = std::make_shared<core::Message<core::DealInformation>>(core::MessageType::UserDealWon, userId, std::chrono::system_clock::to_time_t(timeStamp), amount);
+        result = std::make_shared<core::Message<core::DealInformation>>(
+            core::MessageType::UserDealWon, userId, std::chrono::system_clock::to_time_t(timeStamp), amount);
       }
 
       return result;
@@ -90,7 +94,7 @@ namespace rating_calculator {
       users.emplace_back(userId, name);
 
       // Otherwise we notify before message reaches recipient
-      if(userId > 3)
+      if (userId > 3)
       {
         usersCondVar.notify_one();
       }
@@ -101,7 +105,7 @@ namespace rating_calculator {
     void RequestGenerator::waitForUsersToRegister()
     {
       std::unique_lock<std::mutex> lck(usersMutex);
-      while(users.empty())
+      while (users.empty())
       {
         usersCondVar.wait(lck);
       }
@@ -113,5 +117,5 @@ namespace rating_calculator {
 
       return users.size();
     }
-  }
-  }
+  } // namespace test_client
+} // namespace rating_calculator

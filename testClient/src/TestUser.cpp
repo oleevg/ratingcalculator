@@ -11,11 +11,9 @@ namespace rating_calculator {
 
   namespace test_client {
 
-    TestUser::TestUser(const core::UserIdentifier& id, const std::string& name):
-      userInformation(id, name), connected(false)
-    {
-
-    }
+    TestUser::TestUser(const core::UserIdentifier& id, const std::string& name)
+        : userInformation(id, name), connected(false)
+    {}
 
     void TestUser::changeName(const std::string& name)
     {
@@ -36,5 +34,5 @@ namespace rating_calculator {
     {
       return userInformation.name;
     }
-  }
-  }
+  } // namespace test_client
+} // namespace rating_calculator

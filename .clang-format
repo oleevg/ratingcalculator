@@ -1,0 +1,54 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ColumnLimit: 120
+
+# Namespace bodies are indented
+NamespaceIndentation: All
+
+# Access modifiers sit 2 spaces inside the class declaration,
+# class body content sits 2 spaces further in (one IndentWidth step).
+AccessModifierOffset: -2
+
+# Pointers and references bind to the type, not the name
+PointerAlignment: Left
+
+# Allman braces for functions, control flow, and lambdas;
+# same-line opening brace for class/struct/namespace/enum.
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel:       false
+  AfterClass:           false
+  AfterControlStatement: true
+  AfterEnum:            false
+  AfterFunction:        true
+  AfterNamespace:       false
+  AfterStruct:          false
+  AfterUnion:           false
+  AfterExternBlock:     false
+  BeforeCatch:          false
+  BeforeElse:           true
+  BeforeLambdaBody:     true
+  BeforeWhile:          false
+  IndentBraces:         false
+  SplitEmptyFunction:   false
+  SplitEmptyRecord:     false
+  SplitEmptyNamespace:  false
+
+# No short forms that hide structure
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+
+# Space before ( only for control keywords (if/for/while), not function calls
+SpaceBeforeParens: ControlStatements
+
+# Prefer modern brace initializers
+Cpp11BracedListStyle: true
+
+# Keep existing include order — don't let the formatter rearrange groups
+SortIncludes: false

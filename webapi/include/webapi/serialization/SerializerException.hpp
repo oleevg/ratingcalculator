@@ -20,16 +20,16 @@ namespace rating_calculator {
        * @brief Serializer specific exception type.
        */
       class SerializerException : public core::BaseException {
-        public:
-          SerializerException(const std::string& errorMessage):
-                  core::BaseException(errorMessage, "Serializer exception occurred: ")
-          { }
+      public:
+        SerializerException(const std::string& errorMessage)
+            : core::BaseException(errorMessage, "Serializer exception occurred: ")
+        {}
       };
 
-    }
+    } // namespace serialization
 
-  }
+  } // namespace webapi
 
-}
+} // namespace rating_calculator
 
-#endif //RATINGCALCULATOR_SERIALIZEREXCEPTION_HPP
+#endif // RATINGCALCULATOR_SERIALIZEREXCEPTION_HPP

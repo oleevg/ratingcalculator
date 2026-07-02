@@ -35,98 +35,97 @@ namespace rating_calculator {
        * @brief Class describing application protocol used above WebSocket communication.
        * @tparam ConnectionSide Server or client type going from SimpleWebSocket project.
        */
-      template <class ConnectionSide>
-      class WsProtocol {
+      template <class ConnectionSide> class WsProtocol {
+      public:
+        typedef std::shared_ptr<WsProtocol> Ptr;
+
+      private:
+        struct MessageData {
         public:
-          typedef std::shared_ptr<WsProtocol> Ptr;
-
-        private:
-            struct MessageData {
-            public:
-              typedef std::shared_ptr<MessageData> Ptr;
-
-            public:
-              MessageData(const std::shared_ptr<typename ConnectionSide::Connection>& connection, const WsData& message)
-                      : connection(connection), message(message), resendCounter(0), lastSentTimePoint(std::chrono::system_clock::now())
-              {}
-
-
-              WsData message;
-              size_t resendCounter;
-              std::weak_ptr<typename ConnectionSide::Connection> connection;
-              std::chrono::system_clock::time_point lastSentTimePoint;
-          };
-
-          typedef std::unordered_map<WsMessageIdentifier, typename MessageData::Ptr> ResendMessageStore;
+          typedef std::shared_ptr<MessageData> Ptr;
 
         public:
-          /**
-           * @brief ctor
-           * @param resendNumber Number of attempts to send a packet if it is not acknowledged.
-           * @param resendTimeout Timeout between resend attempts.
-           */
-          WsProtocol(size_t resendNumber = 3, int resendTimeout = 3);
-          ~WsProtocol();
+          MessageData(const std::shared_ptr<typename ConnectionSide::Connection>& connection, const WsData& message)
+              : connection(connection), message(message), resendCounter(0),
+                lastSentTimePoint(std::chrono::system_clock::now())
+          {}
 
-          /**
-           * @brief Starts the protocol thread that handles resend messages queue.
-           */
-          void start();
+          WsData message;
+          size_t resendCounter;
+          std::weak_ptr<typename ConnectionSide::Connection> connection;
+          std::chrono::system_clock::time_point lastSentTimePoint;
+        };
 
-          /**
-           * @brief Stops the resend messages queue thread.
-           */
-          void stop();
+        typedef std::unordered_map<WsMessageIdentifier, typename MessageData::Ptr> ResendMessageStore;
 
-          /**
-           * @brief Sends the protocol message to the client.
-           * @param message Message to be send.
-           * @param connection Client' connection to send message to.
-           */
-          void sendMessage(const core::BaseMessage::Ptr& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection);
+      public:
+        /**
+         * @brief ctor
+         * @param resendNumber Number of attempts to send a packet if it is not acknowledged.
+         * @param resendTimeout Timeout between resend attempts.
+         */
+        WsProtocol(size_t resendNumber = 3, int resendTimeout = 3);
+        ~WsProtocol();
 
+        /**
+         * @brief Starts the protocol thread that handles resend messages queue.
+         */
+        void start();
 
-          /**
-           * @brief Parses received data to obtain protocol internal message.
-           * @param message Received message form WebSocket layer.
-           * @param connection Client's connection.
-           * @return Custom message or nullptr if protocol service message was received.
-           */
-          core::BaseMessage::Ptr parseMessage(const std::shared_ptr<typename ConnectionSide::Message> message,
-                                                  const std::shared_ptr<typename ConnectionSide::Connection>& connection);
+        /**
+         * @brief Stops the resend messages queue thread.
+         */
+        void stop();
 
-        private:
-          size_t getInCounter();
-          size_t getNextOutCounter();
+        /**
+         * @brief Sends the protocol message to the client.
+         * @param message Message to be send.
+         * @param connection Client' connection to send message to.
+         */
+        void sendMessage(const core::BaseMessage::Ptr& message,
+                         const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 
-          void addToResendStore(const std::shared_ptr<typename ConnectionSide::Connection>& connection, const typename MessageData::Ptr& messageData);
+        /**
+         * @brief Parses received data to obtain protocol internal message.
+         * @param message Received message form WebSocket layer.
+         * @param connection Client's connection.
+         * @return Custom message or nullptr if protocol service message was received.
+         */
+        core::BaseMessage::Ptr parseMessage(const std::shared_ptr<typename ConnectionSide::Message> message,
+                                            const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 
-          void removeFromResendStore(WsMessageIdentifier messageId);
-          void removeFromResendStoreUnsafe(WsMessageIdentifier messageId);
+      private:
+        size_t getInCounter();
+        size_t getNextOutCounter();
 
-        private:
-          size_t resendNumber_;
-          int resendTimeout_;
+        void addToResendStore(const std::shared_ptr<typename ConnectionSide::Connection>& connection,
+                              const typename MessageData::Ptr& messageData);
 
-          size_t inCounter_;
-          size_t outCounter_;
+        void removeFromResendStore(WsMessageIdentifier messageId);
+        void removeFromResendStoreUnsafe(WsMessageIdentifier messageId);
 
-          ResendMessageStore resendStore;
+      private:
+        size_t resendNumber_;
+        int resendTimeout_;
 
-          std::thread resendStoreThread;
-          std::mutex resendStoreMutex;
-          std::condition_variable resendStoreCondVar;
+        size_t inCounter_;
+        size_t outCounter_;
 
-          std::atomic<bool> stopped;
-          std::mutex stopMutex;
-          std::condition_variable stopCondVar;
+        ResendMessageStore resendStore;
+
+        std::thread resendStoreThread;
+        std::mutex resendStoreMutex;
+        std::condition_variable resendStoreCondVar;
+
+        std::atomic<bool> stopped;
+        std::mutex stopMutex;
+        std::condition_variable stopCondVar;
       };
 
-    }
+    } // namespace transport
 
-  }
+  } // namespace webapi
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_WSPROTOCOL_HPP
+#endif // RATINGCALCULATOR_WSPROTOCOL_HPP

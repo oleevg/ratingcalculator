@@ -91,6 +91,13 @@ By default the server and the client applications write log messages on their co
 ```
   *More tests to be done*
 
+
+### Targets
+
+- make format — runs clang-format -i on all project sources in-place
+- make format-check — dry-run with --Werror, useful in CI to verify formatting without modifying files
+- make tidy — runs clang-tidy -p build/ on all .cpp files (headers are pulled in automatically via compile commands)
+
 ### Known issues
 
 Boost.PropertyTree is used to work with JSON format. Its way to represent objects in JSON format is not conformed to the JSON standard. As a consequence all the types are quoted the same way as usual strings.

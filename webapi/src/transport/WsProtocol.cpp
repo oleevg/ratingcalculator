@@ -23,7 +23,7 @@ namespace rating_calculator {
 
       namespace {
 
-        template<class ConnectionSide>
+        template <class ConnectionSide>
         void sendMessageInternal(const std::shared_ptr<typename ConnectionSide::Connection>& connection,
                                  const WsMessage& wsMessage)
         {
@@ -33,39 +33,37 @@ namespace rating_calculator {
 
           boost::property_tree::write_json(*send_stream, tree);
 
-          connection->send(send_stream, [](const SimpleWeb::error_code &ec)
-          {
-            if(ec)
-            {
-              mdebug_error("Couldn't send message. Error: %s(%d).", ec.message().c_str(), ec);
-            }
-          });
+          connection->send(send_stream,
+                           [](const SimpleWeb::error_code& ec)
+                           {
+                             if (ec)
+                             {
+                               mdebug_error("Couldn't send message. Error: %s(%d).", ec.message().c_str(), ec);
+                             }
+                           });
         }
 
-      }
+      } // namespace
 
       template <class ConnectionSide>
-      WsProtocol<ConnectionSide>::WsProtocol(size_t resendNumber, int resendTimeout) :
-              resendNumber_(resendNumber), resendTimeout_(resendTimeout), inCounter_(0), outCounter_(0), stopped(false)
-      {
+      WsProtocol<ConnectionSide>::WsProtocol(size_t resendNumber, int resendTimeout)
+          : resendNumber_(resendNumber), resendTimeout_(resendTimeout), inCounter_(0), outCounter_(0), stopped(false)
+      {}
 
-      }
-
-
-      template <class ConnectionSide>
-      size_t WsProtocol<ConnectionSide>::getInCounter()
+      template <class ConnectionSide> size_t WsProtocol<ConnectionSide>::getInCounter()
       {
         return inCounter_;
       }
 
-      template <class ConnectionSide>
-      size_t WsProtocol<ConnectionSide>::getNextOutCounter()
+      template <class ConnectionSide> size_t WsProtocol<ConnectionSide>::getNextOutCounter()
       {
-        return (outCounter_++)%SIZE_MAX;
+        return (outCounter_++) % SIZE_MAX;
       }
 
       template <class ConnectionSide>
-      void WsProtocol<ConnectionSide>::sendMessage(const core::BaseMessage::Ptr& message, const std::shared_ptr<typename ConnectionSide::Connection>& connection)
+      void
+      WsProtocol<ConnectionSide>::sendMessage(const core::BaseMessage::Ptr& message,
+                                              const std::shared_ptr<typename ConnectionSide::Connection>& connection)
       {
         WsData wsData(getNextOutCounter(), message);
 
@@ -76,8 +74,9 @@ namespace rating_calculator {
       }
 
       template <class ConnectionSide>
-      core::BaseMessage::Ptr WsProtocol<ConnectionSide>::parseMessage(const std::shared_ptr<typename ConnectionSide::Message> message,
-                                                                      const std::shared_ptr<typename ConnectionSide::Connection>& connection)
+      core::BaseMessage::Ptr
+      WsProtocol<ConnectionSide>::parseMessage(const std::shared_ptr<typename ConnectionSide::Message> message,
+                                               const std::shared_ptr<typename ConnectionSide::Connection>& connection)
       {
         core::BaseMessage::Ptr result;
 
@@ -89,12 +88,12 @@ namespace rating_calculator {
 
         WsMessage::Ptr wsMessage = serialization::JsonDeserializer<WsMessage>::Parse(tree);
 
-        if(wsMessage->getType() == WsMessageType::Ack)
+        if (wsMessage->getType() == WsMessageType::Ack)
         {
           mdebug_notice("Received 'ACK' message: '%s'.", stringStream.str().c_str());
           removeFromResendStore(wsMessage->getId());
         }
-        else if(wsMessage->getType() == WsMessageType::Data)
+        else if (wsMessage->getType() == WsMessageType::Data)
         {
           auto wsData = std::static_pointer_cast<WsData>(wsMessage);
           result = wsData->getData();
@@ -108,107 +107,109 @@ namespace rating_calculator {
         return result;
       }
 
-      template<class ConnectionSide>
+      template <class ConnectionSide>
       void WsProtocol<ConnectionSide>::addToResendStore(
-              const std::shared_ptr<typename ConnectionSide::Connection>& connection,
-              const typename WsProtocol::MessageData::Ptr& messageData)
+          const std::shared_ptr<typename ConnectionSide::Connection>& connection,
+          const typename WsProtocol::MessageData::Ptr& messageData)
       {
         std::lock_guard<std::mutex> lck(resendStoreMutex);
         resendStore.insert({messageData->message.getId(), messageData});
         resendStoreCondVar.notify_one();
       }
 
-      template<class ConnectionSide>
+      template <class ConnectionSide>
       void WsProtocol<ConnectionSide>::removeFromResendStore(WsMessageIdentifier messageId)
       {
         std::lock_guard<std::mutex> lck(resendStoreMutex);
         removeFromResendStoreUnsafe(messageId);
       }
 
-      template<class ConnectionSide>
+      template <class ConnectionSide>
       void WsProtocol<ConnectionSide>::removeFromResendStoreUnsafe(WsMessageIdentifier messageId)
       {
         size_t erasedMessages = resendStore.erase(messageId);
-        mdebug_notice("Going to remove message with id '%d' from the resend store.", messageId, core::ThreadHelper::threadIdToInt());
+        mdebug_notice("Going to remove message with id '%d' from the resend store.", messageId,
+                      core::ThreadHelper::threadIdToInt());
 
-        if(erasedMessages != 1)
+        if (erasedMessages != 1)
         {
           mdebug_warn("No such message in resend store with id: '%d'.", messageId);
         }
       }
 
-      template<class ConnectionSide>
-      void WsProtocol<ConnectionSide>::start()
+      template <class ConnectionSide> void WsProtocol<ConnectionSide>::start()
       {
-        resendStoreThread = std::thread([this]() {
-          while (!stopped.load())
-          {
-            std::unique_lock<std::mutex> lck(resendStoreMutex);
-
-            while (resendStore.empty() && !stopped.load())
+        resendStoreThread = std::thread(
+            [this]()
             {
-              resendStoreCondVar.wait_for(lck, std::chrono::seconds(1));
-            }
-
-            std::list<WsMessageIdentifier> messagesToRemove;
-            for (auto& resendStoreItem : resendStore)
-            {
-              auto messageId = resendStoreItem.first;
-              MessageData& messageData = *resendStoreItem.second;
-
-              if (messageData.resendCounter < resendNumber_)
+              while (!stopped.load())
               {
-                if (messageData.lastSentTimePoint + std::chrono::seconds(resendTimeout_) <
-                    std::chrono::system_clock::now())
+                std::unique_lock<std::mutex> lck(resendStoreMutex);
+
+                while (resendStore.empty() && !stopped.load())
                 {
-                  auto connection = messageData.connection.lock();
-                  if (connection)
+                  resendStoreCondVar.wait_for(lck, std::chrono::seconds(1));
+                }
+
+                std::list<WsMessageIdentifier> messagesToRemove;
+                for (auto& resendStoreItem : resendStore)
+                {
+                  auto messageId = resendStoreItem.first;
+                  MessageData& messageData = *resendStoreItem.second;
+
+                  if (messageData.resendCounter < resendNumber_)
                   {
-                    mdebug_notice("Going to resend message with id: '%d'.", messageId);
-                    sendMessageInternal<ConnectionSide>(connection, messageData.message);
-                    ++messageData.resendCounter;
-                    messageData.lastSentTimePoint = std::chrono::system_clock::now();
+                    if (messageData.lastSentTimePoint + std::chrono::seconds(resendTimeout_) <
+                        std::chrono::system_clock::now())
+                    {
+                      auto connection = messageData.connection.lock();
+                      if (connection)
+                      {
+                        mdebug_notice("Going to resend message with id: '%d'.", messageId);
+                        sendMessageInternal<ConnectionSide>(connection, messageData.message);
+                        ++messageData.resendCounter;
+                        messageData.lastSentTimePoint = std::chrono::system_clock::now();
+                      }
+                      else
+                      {
+                        messagesToRemove.push_back(messageId);
+                        mdebug_warn("Going to remove message '%d' from resend store as its client disconnected.",
+                                    messageId);
+                      }
+                    }
+                    else
+                    {
+                      continue;
+                    }
                   }
                   else
                   {
                     messagesToRemove.push_back(messageId);
-                    mdebug_warn("Going to remove message '%d' from resend store as its client disconnected.",
+                    mdebug_warn("Going to remove message '%d' from resend store as its resend counter gone.",
                                 messageId);
                   }
                 }
-                else
+
+                for (auto messageId : messagesToRemove)
                 {
-                  continue;
+                  removeFromResendStoreUnsafe(messageId);
+                }
+
+                lck.unlock();
+
+                if (!stopped.load())
+                {
+                  std::unique_lock<std::mutex> stopLock(stopMutex);
+                  stopCondVar.wait_for(stopLock, std::chrono::seconds(resendTimeout_));
                 }
               }
-              else
-              {
-                messagesToRemove.push_back(messageId);
-                mdebug_warn("Going to remove message '%d' from resend store as its resend counter gone.", messageId);
-              }
-            }
-
-            for (auto messageId : messagesToRemove)
-            {
-              removeFromResendStoreUnsafe(messageId);
-            }
-
-            lck.unlock();
-
-            if(!stopped.load())
-            {
-              std::unique_lock<std::mutex> stopLock(stopMutex);
-              stopCondVar.wait_for(stopLock, std::chrono::seconds(resendTimeout_));
-            }
-          }
-        });
+            });
       }
 
-      template<class ConnectionSide>
-      void WsProtocol<ConnectionSide>::stop()
+      template <class ConnectionSide> void WsProtocol<ConnectionSide>::stop()
       {
         bool expected = false;
-        if(stopped.compare_exchange_strong(expected, true))
+        if (stopped.compare_exchange_strong(expected, true))
         {
           {
             std::lock_guard<std::mutex> lck(stopMutex);
@@ -219,8 +220,7 @@ namespace rating_calculator {
         }
       }
 
-      template<class ConnectionSide>
-      WsProtocol<ConnectionSide>::~WsProtocol()
+      template <class ConnectionSide> WsProtocol<ConnectionSide>::~WsProtocol()
       {
         stop();
       }
@@ -229,8 +229,8 @@ namespace rating_calculator {
 
       template class WsProtocol<SimpleWeb::SocketClient<SimpleWeb::WS>>;
 
-    }
+    } // namespace transport
 
-  }
+  } // namespace webapi
 
-}
+} // namespace rating_calculator

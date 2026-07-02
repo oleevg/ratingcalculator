@@ -21,54 +21,52 @@ namespace rating_calculator {
      * @brief Supported messages types.
      */
     enum class MessageType : uint8_t {
-        UserRegistered = 0,
-        UserRenamed,
-        UserConnected,
-        UserDisconnected,
-        UserDealWon,
-        UserRelativeRating
+      UserRegistered = 0,
+      UserRenamed,
+      UserConnected,
+      UserDisconnected,
+      UserDealWon,
+      UserRelativeRating
     };
 
     /**
      * @brief Base class for model messages.
      */
     class BaseMessage {
-      public:
-        typedef std::shared_ptr<BaseMessage> Ptr;
+    public:
+      typedef std::shared_ptr<BaseMessage> Ptr;
 
-      public:
-        MessageType getType() const;
-        virtual ~BaseMessage() = default;
+    public:
+      MessageType getType() const;
+      virtual ~BaseMessage() = default;
 
-      protected:
-        BaseMessage(MessageType type);
+    protected:
+      BaseMessage(MessageType type);
 
-      private:
-        MessageType type_;
+    private:
+      MessageType type_;
     };
 
     /**
      * @brief Specific model message type with the specified payload..
      * @tparam T Custom type used as payload inside message.
      */
-    template<class T>
-    class Message : public BaseMessage {
-      public:
-        template<typename... Args>
-        Message(MessageType type, Args&& ... args): BaseMessage(type), data_(std::forward<Args>(args)...)
-        {}
+    template <class T> class Message : public BaseMessage {
+    public:
+      template <typename... Args>
+      Message(MessageType type, Args&&... args) : BaseMessage(type), data_(std::forward<Args>(args)...)
+      {}
 
-        const T& getData() const
-        {
-          return data_;
-        }
+      const T& getData() const
+      {
+        return data_;
+      }
 
-      private:
-        T data_;
+    private:
+      T data_;
     };
 
-    template<class T>
-    bool operator==(const core::Message <T>& lhs, const core::Message <T>& rhs)
+    template <class T> bool operator==(const core::Message<T>& lhs, const core::Message<T>& rhs)
     {
       bool base = lhs.getType() == rhs.getType();
 
@@ -77,11 +75,10 @@ namespace rating_calculator {
       return (base && derived);
     }
 
-    template<>
-    EnumConverter<MessageType>::EnumConverter();
+    template <> EnumConverter<MessageType>::EnumConverter();
 
-  }
+  } // namespace core
 
-}
+} // namespace rating_calculator
 
-#endif //RATINGCALCULATOR_MODEL_HPP
+#endif // RATINGCALCULATOR_MODEL_HPP

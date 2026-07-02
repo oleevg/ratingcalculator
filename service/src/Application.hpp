@@ -19,22 +19,21 @@ namespace rating_calculator {
      * @detailed Provides application arguments handling.
      */
     class Application {
-        /**
-         * @brief Starts application's main cycle.
-         */
-      public:
-        int run(int argc, const char** argv);
+      /**
+       * @brief Starts application's main cycle.
+       */
+    public:
+      int run(int argc, const char** argv);
 
-      private:
-        void parseArguments(int argc, const char** argv);
+    private:
+      void parseArguments(int argc, const char** argv);
 
-      private:
-        ApplicationService::Ptr appService;
+    private:
+      ApplicationService::Ptr appService;
     };
 
-  }
+  } // namespace service
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_APPLICATION_HPP
+#endif // RATINGCALCULATOR_APPLICATION_HPP

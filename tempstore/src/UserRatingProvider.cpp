@@ -17,15 +17,18 @@ namespace rating_calculator {
   namespace tempstore {
 
     UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
-                                             const core::IDataStoreFactory::Ptr& dataStoreFactory) :
-            periodDuration_(periodDuration), stopped_(false), dataStoreFactory_(dataStoreFactory), sortedDealContainer_(UINT16_MAX)
+                                           const core::IDataStoreFactory::Ptr& dataStoreFactory)
+        : periodDuration_(periodDuration), stopped_(false), dataStoreFactory_(dataStoreFactory),
+          sortedDealContainer_(UINT16_MAX)
     {
       updatePeriod(core::TimeHelper::getPreviousWeekDay(std::chrono::system_clock::now(), startPeriodDay));
 
       auto& userDealDataStore = dataStoreFactory_->getUserDealDataStore();
-      userDealDataStore.addDealAddedSlot([this](const core::DealInformation& dealInformation) {
-        addDeal(dealInformation);
-      });
+      userDealDataStore.addDealAddedSlot(
+          [this](const core::DealInformation& dealInformation)
+          {
+            addDeal(dealInformation);
+          });
     }
 
     UserRatingProvider::~UserRatingProvider()
@@ -48,14 +51,15 @@ namespace rating_calculator {
 
       for (const auto& userRating : userRatingCollection)
       {
-        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position, userRating.value.amount);
+        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position,
+                            userRating.value.amount);
       }
 
       return result;
     }
 
-    core::UserPositionsCollection
-    UserRatingProvider::getHighPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const
+    core::UserPositionsCollection UserRatingProvider::getHighPositions(const core::UserIdentifier& userIdentifier,
+                                                                       size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -67,14 +71,15 @@ namespace rating_calculator {
 
       for (const auto& userRating : userRatingCollection)
       {
-        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position, userRating.value.amount);
+        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position,
+                            userRating.value.amount);
       }
 
       return result;
     }
 
-    core::UserPositionsCollection
-    UserRatingProvider::getLowPositions(const core::UserIdentifier& userIdentifier, size_t nPositions) const
+    core::UserPositionsCollection UserRatingProvider::getLowPositions(const core::UserIdentifier& userIdentifier,
+                                                                      size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -86,7 +91,8 @@ namespace rating_calculator {
 
       for (const auto& userRating : userRatingCollection)
       {
-        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position, userRating.value.amount);
+        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position,
+                            userRating.value.amount);
       }
 
       return result;
@@ -100,36 +106,41 @@ namespace rating_calculator {
 
       auto userRating = sortedDealContainer_.getPosition(userIdentifier);
 
-      return core::UserPosition(userDataStore.getUserInformation(userIdentifier), userRating.position, userRating.value.amount);
+      return core::UserPosition(userDataStore.getUserInformation(userIdentifier), userRating.position,
+                                userRating.value.amount);
     }
 
     void UserRatingProvider::updatePeriod(const core::TimePoint& startTime)
     {
       startTime_ = startTime;
       endTime_ = startTime + std::chrono::seconds(periodDuration_);
-      mdebug_info("Updated rating period: startTime = '%s', endTime = '%s', now = '%s'.", core::TimeHelper::toString(startTime_).c_str(), core::TimeHelper::toString(endTime_).c_str(), core::TimeHelper::toString(std::chrono::system_clock::now()).c_str());
+      mdebug_info("Updated rating period: startTime = '%s', endTime = '%s', now = '%s'.",
+                  core::TimeHelper::toString(startTime_).c_str(), core::TimeHelper::toString(endTime_).c_str(),
+                  core::TimeHelper::toString(std::chrono::system_clock::now()).c_str());
     }
 
     void UserRatingProvider::start()
     {
-      if(!stopped_.load())
+      if (!stopped_.load())
       {
-        watcherThread_ = std::thread([this]() {
-          while (!stopped_.load())
-          {
-            std::unique_lock<std::mutex> stopLock(stopMutex_);
-            auto condVarStatus = stopCondVar_.wait_until(stopLock, endTime_);
-
-            if(condVarStatus == std::cv_status::timeout)
+        watcherThread_ = std::thread(
+            [this]()
             {
-              std::lock_guard<std::mutex> storeLock(storeMutex_);
-              sortedDealContainer_.clear();
-              mdebug_info("Cleared sorted deal table.");
+              while (!stopped_.load())
+              {
+                std::unique_lock<std::mutex> stopLock(stopMutex_);
+                auto condVarStatus = stopCondVar_.wait_until(stopLock, endTime_);
 
-              updatePeriod(endTime_);
-            }
-          }
-        });
+                if (condVarStatus == std::cv_status::timeout)
+                {
+                  std::lock_guard<std::mutex> storeLock(storeMutex_);
+                  sortedDealContainer_.clear();
+                  mdebug_info("Cleared sorted deal table.");
+
+                  updatePeriod(endTime_);
+                }
+              }
+            });
       }
     }
 
@@ -164,6 +175,6 @@ namespace rating_calculator {
       }
     }
 
-  }
+  } // namespace tempstore
 
-}
+} // namespace rating_calculator

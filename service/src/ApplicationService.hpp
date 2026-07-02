@@ -25,41 +25,40 @@ namespace rating_calculator {
     /**
      * @brief The service class describing the application life cycle.
      */
-    class ApplicationService : public std::enable_shared_from_this<ApplicationService>, boost::noncopyable{
-        typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
+    class ApplicationService : public std::enable_shared_from_this<ApplicationService>, boost::noncopyable {
+      typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
 
-      public:
-        typedef std::shared_ptr<ApplicationService> Ptr;
+    public:
+      typedef std::shared_ptr<ApplicationService> Ptr;
 
-      public:
-        /**
-         * @brief ctor
-         * @param port The server's port number to listen.
-         * @param timeout User rating update timeout in seconds.
-         * @param threadPoolSize The service's thread pool size.
-         */
-        ApplicationService(int port, const std::chrono::seconds &timeout, size_t threadPoolSize);
+    public:
+      /**
+       * @brief ctor
+       * @param port The server's port number to listen.
+       * @param timeout User rating update timeout in seconds.
+       * @param threadPoolSize The service's thread pool size.
+       */
+      ApplicationService(int port, const std::chrono::seconds& timeout, size_t threadPoolSize);
 
-        /**
-         * @brief Starts the application life cycle.
-         * @return The application's return code.
-         */
-        int run();
+      /**
+       * @brief Starts the application life cycle.
+       * @return The application's return code.
+       */
+      int run();
 
-      private:
-        void setWsEndpoints();
+    private:
+      void setWsEndpoints();
 
-      private:
-        WsServer server;
-        webapi::transport::WsProtocol<WsServer>::Ptr protocol;
+    private:
+      WsServer server;
+      webapi::transport::WsProtocol<WsServer>::Ptr protocol;
 
-        core::IDataStoreFactory::Ptr dataStoreFactory;
-        UserRatingWatcher userRatingWatcher;
+      core::IDataStoreFactory::Ptr dataStoreFactory;
+      UserRatingWatcher userRatingWatcher;
     };
 
-  }
+  } // namespace service
 
-}
+} // namespace rating_calculator
 
-
-#endif //RATINGCALCULATOR_APPLICATIONSERVICE_HPP
+#endif // RATINGCALCULATOR_APPLICATIONSERVICE_HPP

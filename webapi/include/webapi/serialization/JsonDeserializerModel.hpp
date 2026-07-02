@@ -23,14 +23,13 @@ namespace rating_calculator {
 
     namespace serialization {
 
-      #define THROW_ON_EMPTY_VALUE(ptree) \
-        if (value.empty()) \
-        { \
-          throw SerializerException("Can't deserialize empty JSON value."); \
-        }
+#define THROW_ON_EMPTY_VALUE(ptree)                                                                                    \
+  if (value.empty())                                                                                                   \
+  {                                                                                                                    \
+    throw SerializerException("Can't deserialize empty JSON value.");                                                  \
+  }
 
-      template<>
-      struct JsonDeserializer<core::UserInformation> {
+      template <> struct JsonDeserializer<core::UserInformation> {
         static core::UserInformation Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -42,8 +41,7 @@ namespace rating_calculator {
         }
       };
 
-      template<>
-      struct JsonDeserializer<core::DealInformation> {
+      template <> struct JsonDeserializer<core::DealInformation> {
         static core::DealInformation Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -56,8 +54,7 @@ namespace rating_calculator {
         }
       };
 
-      template<>
-      struct JsonDeserializer<core::UserIdInformation> {
+      template <> struct JsonDeserializer<core::UserIdInformation> {
         static core::UserIdInformation Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -68,9 +65,7 @@ namespace rating_calculator {
         }
       };
 
-
-      template <>
-      struct JsonDeserializer<core::UserPosition> {
+      template <> struct JsonDeserializer<core::UserPosition> {
         static core::UserPosition Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -83,8 +78,7 @@ namespace rating_calculator {
         }
       };
 
-      template <>
-      struct JsonDeserializer<core::UserRelativeRating> {
+      template <> struct JsonDeserializer<core::UserRelativeRating> {
         static core::UserRelativeRating Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -98,8 +92,7 @@ namespace rating_calculator {
         }
       };
 
-      template<class T>
-      struct JsonDeserializer<core::Message<T>> {
+      template <class T> struct JsonDeserializer<core::Message<T>> {
         static core::Message<T> Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -112,8 +105,7 @@ namespace rating_calculator {
         }
       };
 
-      template<>
-      struct JsonDeserializer<core::BaseMessage> {
+      template <> struct JsonDeserializer<core::BaseMessage> {
         static core::BaseMessage::Ptr Parse(const boost::property_tree::ptree& value)
         {
           THROW_ON_EMPTY_VALUE(value)
@@ -122,44 +114,52 @@ namespace rating_calculator {
 
           auto type = JsonDeserializer<core::MessageType>::Parse(value.get_child("type"));
 
-          if(type == core::MessageType::UserRegistered)
+          if (type == core::MessageType::UserRegistered)
           {
-            result = std::make_shared<core::Message<core::UserInformation>>(JsonDeserializer<core::Message<core::UserInformation>>::Parse(value));
+            result = std::make_shared<core::Message<core::UserInformation>>(
+                JsonDeserializer<core::Message<core::UserInformation>>::Parse(value));
           }
-          else if(type == core::MessageType::UserRenamed)
+          else if (type == core::MessageType::UserRenamed)
           {
-            result = std::make_shared<core::Message<core::UserInformation>>(JsonDeserializer<core::Message<core::UserInformation>>::Parse(value));
+            result = std::make_shared<core::Message<core::UserInformation>>(
+                JsonDeserializer<core::Message<core::UserInformation>>::Parse(value));
           }
-          else if(type == core::MessageType::UserConnected)
+          else if (type == core::MessageType::UserConnected)
           {
-            result = std::make_shared<core::Message<core::UserIdInformation>>(JsonDeserializer<core::Message<core::UserIdInformation>>::Parse(value));
+            result = std::make_shared<core::Message<core::UserIdInformation>>(
+                JsonDeserializer<core::Message<core::UserIdInformation>>::Parse(value));
           }
-          else if(type == core::MessageType::UserDisconnected)
+          else if (type == core::MessageType::UserDisconnected)
           {
-            result = std::make_shared<core::Message<core::UserIdInformation>>(JsonDeserializer<core::Message<core::UserIdInformation>>::Parse(value));
+            result = std::make_shared<core::Message<core::UserIdInformation>>(
+                JsonDeserializer<core::Message<core::UserIdInformation>>::Parse(value));
           }
-          else if(type == core::MessageType::UserDealWon)
+          else if (type == core::MessageType::UserDealWon)
           {
-            result = std::make_shared<core::Message<core::DealInformation>>(JsonDeserializer<core::Message<core::DealInformation>>::Parse(value));
+            result = std::make_shared<core::Message<core::DealInformation>>(
+                JsonDeserializer<core::Message<core::DealInformation>>::Parse(value));
           }
-          else if(type == core::MessageType::UserRelativeRating)
+          else if (type == core::MessageType::UserRelativeRating)
           {
-            result = std::make_shared<core::Message<core::UserRelativeRating>>(JsonDeserializer<core::Message<core::UserRelativeRating>>::Parse(value));
+            result = std::make_shared<core::Message<core::UserRelativeRating>>(
+                JsonDeserializer<core::Message<core::UserRelativeRating>>::Parse(value));
           }
           else
           {
             const auto& enumConverter = core::EnumConverter<core::MessageType>::get_const_instance();
-            throw SerializerException((boost::format("Can't deserialize unsupported message '%s'.") % enumConverter.toString(type).c_str()).str());
+            throw SerializerException(
+                (boost::format("Can't deserialize unsupported message '%s'.") % enumConverter.toString(type).c_str())
+                    .str());
           }
 
           return result;
         }
       };
 
-    }
+    } // namespace serialization
 
-  }
+  } // namespace webapi
 
-}
+} // namespace rating_calculator
 
-#endif //RATINGCALCULATOR_JSONDESERIALIZERMODEL_HPP
+#endif // RATINGCALCULATOR_JSONDESERIALIZERMODEL_HPP

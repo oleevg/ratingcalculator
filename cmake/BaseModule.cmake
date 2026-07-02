@@ -147,8 +147,6 @@ set(${project_name}_${module_name}_TESTS ${tests}
 if (${project_name}_${module_name}_TESTS)
   #ADD_DEFINITIONS(-D_GLIBCXX_USE_CXX11_ABI=0)
   #ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
-  set(Boost_USE_STATIC_LIBS ON)
-  set(Boost_MULTITHREADED ON)
   if(WIN32)
     if (MSVC)
       set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
@@ -156,7 +154,7 @@ if (${project_name}_${module_name}_TESTS)
     set(Boost_DETAILED_FAILURE_MSG ON)
     set(Boost_USE_STATIC_RUNTIME ON)
   endif()
-  find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+  find_package(Boost CONFIG REQUIRED COMPONENTS unit_test_framework)
 
   include_directories(${Boost_INCLUDE_DIR})
 
