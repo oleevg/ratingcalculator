@@ -17,7 +17,7 @@ namespace rating_calculator {
 
   namespace core {
 
-    typedef uint64_t UserIdentifier;
+    using UserIdentifier = std::uint64_t;
 
     class DealInformation;
     std::ostream& operator<<(std::ostream& out, const DealInformation& obj);
@@ -29,7 +29,7 @@ namespace rating_calculator {
      * @brief User identification type wrapper used for serialization purposes.
      */
     struct UserIdInformation {
-      explicit UserIdInformation(UserIdentifier id_) : id(id_)
+      explicit UserIdInformation(UserIdentifier id) : id(id)
       {}
 
       bool operator==(const UserIdInformation& obj) const
@@ -44,7 +44,7 @@ namespace rating_calculator {
      * @brief Describes user information.
      */
     struct UserInformation {
-      UserInformation(const UserIdentifier& id_, const std::string& name_) : id(id_), name(name_)
+      UserInformation(const UserIdentifier& id, const std::string& name) : id(id), name(name)
       {}
 
       bool operator==(const UserInformation& obj) const
@@ -60,8 +60,8 @@ namespace rating_calculator {
      * @brief Describes user deal information.
      */
     struct DealInformation {
-      DealInformation(const UserIdentifier& userId_, uint64_t timestamp_, float amount_)
-          : userId(userId_), timestamp(timestamp_), amount(amount_)
+      DealInformation(const UserIdentifier& userId, std::uint64_t timestamp, float amount)
+          : userId(userId), timestamp(timestamp), amount(amount)
       {}
 
       bool operator==(const DealInformation& obj) const
@@ -70,7 +70,7 @@ namespace rating_calculator {
       }
 
       UserIdentifier userId;
-      uint64_t timestamp;
+      std::uint64_t timestamp;
       float amount;
     };
 
@@ -78,8 +78,8 @@ namespace rating_calculator {
      * @brief Describes user rating position.
      */
     struct UserPosition {
-      UserPosition(const UserInformation& userInformation_, size_t position_, float amount_)
-          : userInformation(userInformation_), position(position_), amount(amount_)
+      UserPosition(const UserInformation& userInformation, std::size_t position, float amount)
+          : userInformation(userInformation), position(position), amount(amount)
       {}
 
       bool operator==(const UserPosition& obj) const
@@ -88,11 +88,11 @@ namespace rating_calculator {
       }
 
       UserInformation userInformation;
-      size_t position;
+      std::size_t position;
       float amount;
     };
 
-    typedef std::vector<UserPosition> UserPositionsCollection;
+    using UserPositionsCollection = std::vector<UserPosition>;
 
     /**
      * @brief Describes user relative rating information.
@@ -100,10 +100,10 @@ namespace rating_calculator {
      * in relation to the requested user position.
      */
     struct UserRelativeRating {
-      UserRelativeRating(const UserPosition& userPosition_, const UserPositionsCollection& headPositions_,
-                         const UserPositionsCollection& highPositions_, const UserPositionsCollection& lowPositions_)
-          : userPosition(userPosition_), headPositions(headPositions_), highPositions(highPositions_),
-            lowPositions(lowPositions_)
+      UserRelativeRating(const UserPosition& userPosition, const UserPositionsCollection& headPositions,
+                         const UserPositionsCollection& highPositions, const UserPositionsCollection& lowPositions)
+          : userPosition(userPosition), headPositions(headPositions), highPositions(highPositions),
+            lowPositions(lowPositions)
       {}
 
       bool operator==(const UserRelativeRating& obj) const

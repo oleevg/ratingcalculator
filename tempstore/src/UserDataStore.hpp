@@ -18,7 +18,7 @@ namespace rating_calculator {
 
     class UserDataStore : public core::IUserDataStore {
     public:
-      typedef std::unordered_map<core::UserIdentifier, core::UserInformation> UsersCollection;
+      using UsersCollection = std::unordered_map<core::UserIdentifier, core::UserInformation>;
 
     public:
       void addUser(const core::UserInformation& userInformation) override;

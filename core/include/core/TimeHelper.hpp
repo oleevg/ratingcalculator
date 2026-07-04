@@ -16,14 +16,14 @@ namespace rating_calculator {
 
   namespace core {
 
-    typedef std::chrono::system_clock::time_point TimePoint;
+    using TimePoint = std::chrono::system_clock::time_point;
 
     /**
      * @brief Helper class to work with time and date.
      */
     class TimeHelper {
     public:
-      enum class WeekDay : uint8_t {
+      enum class WeekDay : std::uint8_t {
         Monday = 1,
         Tuesday = 2,
         Wednesday = 3,

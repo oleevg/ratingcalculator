@@ -20,7 +20,7 @@ namespace rating_calculator {
     /**
      * @brief Supported messages types.
      */
-    enum class MessageType : uint8_t {
+    enum class MessageType : std::uint8_t {
       UserRegistered = 0,
       UserRenamed,
       UserConnected,
@@ -34,7 +34,7 @@ namespace rating_calculator {
      */
     class BaseMessage {
     public:
-      typedef std::shared_ptr<BaseMessage> Ptr;
+      using Ptr = std::shared_ptr<BaseMessage>;
 
     public:
       MessageType getType() const;

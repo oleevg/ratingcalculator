@@ -47,7 +47,7 @@ namespace rating_calculator {
           THROW_ON_EMPTY_VALUE(value)
 
           auto userId = JsonDeserializer<core::UserIdentifier>::Parse(value.get_child("userId"));
-          auto timestamp = JsonDeserializer<uint64_t>::Parse(value.get_child("timestamp"));
+          auto timestamp = JsonDeserializer<std::uint64_t>::Parse(value.get_child("timestamp"));
           auto amount = JsonDeserializer<float>::Parse(value.get_child("amount"));
 
           return core::DealInformation(userId, timestamp, amount);
@@ -71,7 +71,7 @@ namespace rating_calculator {
           THROW_ON_EMPTY_VALUE(value)
 
           auto userInformation = JsonDeserializer<core::UserInformation>::Parse(value.get_child("userInfo"));
-          auto position = JsonDeserializer<size_t>::Parse(value.get_child("position"));
+          auto position = JsonDeserializer<std::size_t>::Parse(value.get_child("position"));
           auto amount = JsonDeserializer<float>::Parse(value.get_child("amount"));
 
           return core::UserPosition(userInformation, position, amount);

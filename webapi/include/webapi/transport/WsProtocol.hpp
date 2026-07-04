@@ -37,12 +37,12 @@ namespace rating_calculator {
        */
       template <class ConnectionSide> class WsProtocol {
       public:
-        typedef std::shared_ptr<WsProtocol> Ptr;
+        using Ptr = std::shared_ptr<WsProtocol>;
 
       private:
         struct MessageData {
         public:
-          typedef std::shared_ptr<MessageData> Ptr;
+          using Ptr = std::shared_ptr<MessageData>;
 
         public:
           MessageData(const std::shared_ptr<typename ConnectionSide::Connection>& connection, const WsData& message)
@@ -51,12 +51,12 @@ namespace rating_calculator {
           {}
 
           WsData message;
-          size_t resendCounter;
+          std::size_t resendCounter;
           std::weak_ptr<typename ConnectionSide::Connection> connection;
           std::chrono::system_clock::time_point lastSentTimePoint;
         };
 
-        typedef std::unordered_map<WsMessageIdentifier, typename MessageData::Ptr> ResendMessageStore;
+        using ResendMessageStore = std::unordered_map<WsMessageIdentifier, typename MessageData::Ptr>;
 
       public:
         /**
@@ -64,7 +64,7 @@ namespace rating_calculator {
          * @param resendNumber Number of attempts to send a packet if it is not acknowledged.
          * @param resendTimeout Timeout between resend attempts.
          */
-        WsProtocol(size_t resendNumber = 3, int resendTimeout = 3);
+        WsProtocol(std::size_t resendNumber = 3, int resendTimeout = 3);
         ~WsProtocol();
 
         /**
@@ -95,8 +95,8 @@ namespace rating_calculator {
                                             const std::shared_ptr<typename ConnectionSide::Connection>& connection);
 
       private:
-        size_t getInCounter();
-        size_t getNextOutCounter();
+        std::size_t getInCounter();
+        std::size_t getNextOutCounter();
 
         void addToResendStore(const std::shared_ptr<typename ConnectionSide::Connection>& connection,
                               const typename MessageData::Ptr& messageData);
@@ -105,11 +105,11 @@ namespace rating_calculator {
         void removeFromResendStoreUnsafe(WsMessageIdentifier messageId);
 
       private:
-        size_t resendNumber_;
+        std::size_t resendNumber_;
         int resendTimeout_;
 
-        size_t inCounter_;
-        size_t outCounter_;
+        std::size_t inCounter_;
+        std::size_t outCounter_;
 
         ResendMessageStore resendStore;
 

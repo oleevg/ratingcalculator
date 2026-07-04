@@ -26,14 +26,14 @@ namespace rating_calculator {
        */
       enum class WsMessageType { Ack = 0, Data, Error };
 
-      typedef uint16_t WsMessageIdentifier;
+      using WsMessageIdentifier = std::uint16_t;
 
       /**
        * @brief Base protocol message.
        */
       class WsMessage {
       public:
-        typedef std::shared_ptr<WsMessage> Ptr;
+        using Ptr = std::shared_ptr<WsMessage>;
 
       public:
         /**
@@ -51,7 +51,7 @@ namespace rating_calculator {
         WsMessageIdentifier id_;
       };
 
-      typedef uint8_t ErrorCode;
+      using ErrorCode = std::uint8_t;
 
       /**
        * @brief Message describing internal protocol errors.
@@ -93,7 +93,7 @@ namespace rating_calculator {
        */
       class WsData : public WsMessage {
       public:
-        typedef std::shared_ptr<WsData> Ptr;
+        using Ptr = std::shared_ptr<WsData>;
 
       public:
         /**

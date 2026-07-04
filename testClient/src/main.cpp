@@ -22,7 +22,7 @@
 
 #include "RequestGenerator.hpp"
 
-typedef SimpleWeb::SocketClient<SimpleWeb::WS> WsClient;
+using WsClient = SimpleWeb::SocketClient<SimpleWeb::WS>;
 
 namespace core = rating_calculator::core;
 namespace transport = rating_calculator::webapi::transport;
@@ -34,21 +34,21 @@ int main(int argc, const char* argv[])
   const std::string addressDefault = "localhost";
   const int portDefault = 88888;
   const int requestTimeoutDefault = 1;
-  const size_t nUsersDefault = 100;
+  const std::size_t nUsersDefault = 100;
 
   options::options_description optionDescription((boost::format("Usage: %s [options]... \nOptions") % argv[0]).str());
 
   std::string address = addressDefault;
   int port = portDefault;
   int requestTimeout = requestTimeoutDefault;
-  size_t nUsers = nUsersDefault;
+  std::size_t nUsers = nUsersDefault;
 
   optionDescription.add_options()("address,a", options::value<std::string>(&address)->default_value(addressDefault),
                                   "The server address to connect to.")(
       "port,p", options::value<int>(&port)->default_value(portDefault), "The port number to connect to.")(
       "timeout,t", options::value<int>(&requestTimeout)->default_value(requestTimeoutDefault),
       "Timeout in seconds to send generated test requests.")(
-      "users,u", options::value<size_t>(&nUsers)->default_value(nUsersDefault),
+      "users,u", options::value<std::size_t>(&nUsers)->default_value(nUsersDefault),
       "Maximum number of test users.")("help,h", "As it says.");
 
   options::variables_map variableMap;
@@ -116,7 +116,7 @@ int main(int argc, const char* argv[])
       [nUsers, clientConnection, &requestGenerator, &protocol, &stopped]()
       {
         std::mt19937 rg{std::random_device{}()};
-        std::uniform_int_distribution<size_t> pickTimeout(1, 1000);
+        std::uniform_int_distribution<std::size_t> pickTimeout(1, 1000);
 
         while (requestGenerator.getRegisteredUsersNumber() != nUsers && !stopped.load())
         {

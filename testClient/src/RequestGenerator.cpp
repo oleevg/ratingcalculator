@@ -14,7 +14,7 @@ namespace rating_calculator {
 
   namespace test_client {
 
-    RequestGenerator::RequestGenerator(size_t nUsers) : nUsersMax(nUsers)
+    RequestGenerator::RequestGenerator(std::size_t nUsers) : nUsersMax(nUsers)
     {
       users.reserve(nUsersMax);
     }
@@ -22,21 +22,22 @@ namespace rating_calculator {
     core::BaseMessage::Ptr RequestGenerator::generateUserCommonMessage()
     {
       static std::mt19937 rg{std::random_device{}()};
-      static std::uniform_int_distribution<size_t> pickMessage(static_cast<uint8_t>(core::MessageType::UserRenamed),
-                                                               static_cast<uint8_t>(core::MessageType::UserDealWon));
+      static std::uniform_int_distribution<std::size_t> pickMessage(
+          static_cast<std::uint8_t>(core::MessageType::UserRenamed),
+          static_cast<std::uint8_t>(core::MessageType::UserDealWon));
 
       core::BaseMessage::Ptr result;
 
-      uint8_t type = pickMessage(rg);
+      std::uint8_t type = pickMessage(rg);
 
-      if (type == static_cast<uint8_t>(core::MessageType::UserConnected) ||
-          type == static_cast<uint8_t>(core::MessageType::UserDisconnected))
+      if (type == static_cast<std::uint8_t>(core::MessageType::UserConnected) ||
+          type == static_cast<std::uint8_t>(core::MessageType::UserDisconnected))
       {
-        size_t nUsers = getRegisteredUsersNumber();
+        std::size_t nUsers = getRegisteredUsersNumber();
 
-        std::uniform_int_distribution<size_t> pickUser(0, nUsers - 1);
+        std::uniform_int_distribution<std::size_t> pickUser(0, nUsers - 1);
 
-        size_t userId = pickUser(rg);
+        std::size_t userId = pickUser(rg);
 
         if (users[userId].isConnected())
         {
@@ -50,13 +51,13 @@ namespace rating_calculator {
 
         users[userId].setConnected(!users[userId].isConnected());
       }
-      else if (type == static_cast<uint8_t>(core::MessageType::UserRenamed))
+      else if (type == static_cast<std::uint8_t>(core::MessageType::UserRenamed))
       {
-        size_t nUsers = getRegisteredUsersNumber();
+        std::size_t nUsers = getRegisteredUsersNumber();
 
-        std::uniform_int_distribution<size_t> pickUser(0, nUsers - 1);
+        std::uniform_int_distribution<std::size_t> pickUser(0, nUsers - 1);
 
-        size_t userId = pickUser(rg);
+        std::size_t userId = pickUser(rg);
 
         auto& user = users[userId];
         user.changeName(user.getName() + "_");
@@ -64,14 +65,14 @@ namespace rating_calculator {
         result = std::make_shared<core::Message<core::UserInformation>>(core::MessageType::UserRenamed,
                                                                         core::UserInformation(userId, user.getName()));
       }
-      else if (type == static_cast<uint8_t>(core::MessageType::UserDealWon))
+      else if (type == static_cast<std::uint8_t>(core::MessageType::UserDealWon))
       {
-        size_t nUsers = getRegisteredUsersNumber();
+        std::size_t nUsers = getRegisteredUsersNumber();
 
-        std::uniform_int_distribution<size_t> pickUser(0, nUsers - 1);
+        std::uniform_int_distribution<std::size_t> pickUser(0, nUsers - 1);
         std::uniform_real_distribution<float> pickAmount(0.0, 100.0);
 
-        size_t userId = pickUser(rg);
+        std::size_t userId = pickUser(rg);
         float amount = pickAmount(rg);
         auto timeStamp = std::chrono::system_clock::now();
 
@@ -86,7 +87,7 @@ namespace rating_calculator {
     {
       std::lock_guard<std::mutex> lck(usersMutex);
 
-      size_t userId = users.size();
+      std::size_t userId = users.size();
       std::string name = "user" + std::to_string(userId);
 
       core::UserInformation user(userId, name);
@@ -111,7 +112,7 @@ namespace rating_calculator {
       }
     }
 
-    size_t RequestGenerator::getRegisteredUsersNumber() const
+    std::size_t RequestGenerator::getRegisteredUsersNumber() const
     {
       std::lock_guard<std::mutex> lck(usersMutex);
 

@@ -21,8 +21,8 @@ struct UserData {
   float amount;
 };
 
-typedef rating_calculator::core::MultiKeyVolatileContainer<uint64_t, float, UserData, &UserData::id, &UserData::amount>
-    MultiKeyContainer;
+using MultiKeyContainer =
+    rating_calculator::core::MultiKeyVolatileContainer<uint64_t, float, UserData, &UserData::id, &UserData::amount>;
 
 struct MultiKeyVolatileContainerFixture {
   MultiKeyVolatileContainerFixture() : multiKeyContainer(UINT16_MAX)

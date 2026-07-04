@@ -15,14 +15,14 @@ namespace rating_calculator {
 
   namespace service {
 
-    const size_t secondsInWeek = 7 * 24 * 3600;
+    const std::size_t secondsInWeek = 7 * 24 * 3600;
 
-    UserRatingWatcher::UserConnection::UserConnection(const core::UserIdentifier& _userIdentifier,
-                                                      const std::shared_ptr<WsConnection>& _connection)
-        : userIdentifier(_userIdentifier), connection(_connection), connected(true)
+    UserRatingWatcher::UserConnection::UserConnection(const core::UserIdentifier& userIdentifier,
+                                                      const std::shared_ptr<WsConnection>& connection)
+        : userIdentifier(userIdentifier), connection(connection), connected(true)
     {}
 
-    UserRatingWatcher::UserRatingWatcher(const std::chrono::seconds& ratingUpdateTimeout, size_t nRatingPositions,
+    UserRatingWatcher::UserRatingWatcher(const std::chrono::seconds& ratingUpdateTimeout, std::size_t nRatingPositions,
                                          const core::IDataStoreFactory::Ptr& dataStoreFactory,
                                          const webapi::transport::WsProtocol<WsServer>::Ptr& protocol)
         : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions), protocol_(protocol),

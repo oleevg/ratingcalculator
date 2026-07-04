@@ -14,7 +14,7 @@ namespace rating_calculator {
 
   namespace core {
 
-    typedef std::chrono::duration<int, std::ratio<3600 * 24>> DurationInDays;
+    using DurationInDays = std::chrono::duration<int, std::ratio<3600 * 24>>;
 
     TimePoint TimeHelper::getPreviousWeekDay(const TimePoint& timePoint, WeekDay weekDay)
     {
@@ -22,7 +22,7 @@ namespace rating_calculator {
 
       std::tm* tmTime = std::gmtime(&tTime);
 
-      int shiftDays = tmTime->tm_wday - static_cast<uint8_t>(weekDay);
+      int shiftDays = tmTime->tm_wday - static_cast<std::uint8_t>(weekDay);
       shiftDays = (shiftDays >= 0) ? shiftDays : shiftDays + 7;
 
       std::tm resultTmTime = *tmTime;

@@ -35,16 +35,16 @@ namespace rating_calculator {
      */
     class UserRatingProvider : public boost::noncopyable {
       struct MultiKeyData {
-        MultiKeyData(const core::UserIdentifier& _id, float _amount) : id(_id), amount(_amount)
+        MultiKeyData(const core::UserIdentifier& id, float amount) : id(id), amount(amount)
         {}
 
         core::UserIdentifier id;
         float amount;
       };
 
-      typedef core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id,
-                                              &MultiKeyData::amount>
-          SortedDealContainer;
+      using SortedDealContainer =
+          core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id,
+                                          &MultiKeyData::amount>;
 
     public:
       /**
@@ -53,7 +53,7 @@ namespace rating_calculator {
        * @param periodDuration Rating calculation period duration in seconds.
        * @param dataStoreFactory
        */
-      UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+      UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, std::uint64_t periodDuration,
                          const core::IDataStoreFactory::Ptr& dataStoreFactory);
 
       ~UserRatingProvider();
@@ -70,7 +70,7 @@ namespace rating_calculator {
        * @param nPositions The number of users to be included in the result.
        * @return Users rating information.
        */
-      core::UserPositionsCollection getHeadPositions(size_t nPositions) const;
+      core::UserPositionsCollection getHeadPositions(std::size_t nPositions) const;
 
       /**
        * @brief Provides users rating information which are higher in rating position than the specified user.
@@ -79,7 +79,7 @@ namespace rating_calculator {
        * @return Users rating information.
        */
       core::UserPositionsCollection getHighPositions(const core::UserIdentifier& userIdentifier,
-                                                     size_t nPositions) const;
+                                                     std::size_t nPositions) const;
 
       /**
        * @brief Provides users rating information which are lower in rating position than the specified user.
@@ -88,7 +88,7 @@ namespace rating_calculator {
        * @return Users rating information.
        */
       core::UserPositionsCollection getLowPositions(const core::UserIdentifier& userIdentifier,
-                                                    size_t nPositions) const;
+                                                    std::size_t nPositions) const;
 
       /**
        * @brief Adds deal information to the store.
@@ -119,7 +119,7 @@ namespace rating_calculator {
     private:
       core::TimePoint startTime_;
       core::TimePoint endTime_;
-      uint64_t periodDuration_;
+      std::uint64_t periodDuration_;
 
       std::thread watcherThread_;
       mutable std::mutex storeMutex_;

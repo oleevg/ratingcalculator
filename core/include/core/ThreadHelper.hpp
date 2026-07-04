@@ -8,6 +8,7 @@
 #ifndef C_THREADMACRO_HPP
 #define C_THREADMACRO_HPP
 
+#include <cstddef>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -29,7 +30,7 @@ namespace rating_calculator {
         return stringStream.str();
       }
 
-      static size_t threadIdToInt()
+      static std::size_t threadIdToInt()
       {
         std::string strId = threadIdToString();
 

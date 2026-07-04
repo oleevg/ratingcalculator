@@ -22,12 +22,12 @@ namespace rating_calculator {
 
     class RequestGenerator {
     public:
-      RequestGenerator(size_t nUsers);
+      RequestGenerator(std::size_t nUsers);
 
       core::BaseMessage::Ptr generateUserCommonMessage();
       core::BaseMessage::Ptr generateUserRegisteredMessage();
 
-      size_t getRegisteredUsersNumber() const;
+      std::size_t getRegisteredUsersNumber() const;
 
       void waitForUsersToRegister();
 
@@ -36,7 +36,7 @@ namespace rating_calculator {
       mutable std::mutex usersMutex;
       std::condition_variable usersCondVar;
 
-      const size_t nUsersMax;
+      const std::size_t nUsersMax;
     };
 
   } // namespace test_client

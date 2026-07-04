@@ -38,22 +38,22 @@ namespace rating_calculator {
               class Modify = std::plus<SortKey>, class Hash = std::hash<AccessKey>,
               class Pred = std::equal_to<AccessKey>, class Comp = std::greater<SortKey>>
     class MultiKeyVolatileContainer {
-      typedef std::shared_ptr<Value> ValuePtr;
+      using ValuePtr = std::shared_ptr<Value>;
 
     public:
-      typedef std::vector<ValuePtr> SortContainer;
-      typedef std::unordered_map<AccessKey, ValuePtr, Hash, Pred> AccessContainer;
+      using SortContainer = std::vector<ValuePtr>;
+      using AccessContainer = std::unordered_map<AccessKey, ValuePtr, Hash, Pred>;
 
     public:
       struct PositionedData {
-        PositionedData(size_t _position, const Value& value_) : position(_position), value(value_)
+        PositionedData(std::size_t position, const Value& value) : position(position), value(value)
         {}
 
-        size_t position;
+        std::size_t position;
         Value value;
       };
 
-      typedef std::vector<PositionedData> PositionedDataContainer;
+      using PositionedDataContainer = std::vector<PositionedData>;
 
       struct CompPtr {
         bool operator()(const ValuePtr& lhs, const ValuePtr& rhs)
@@ -63,7 +63,7 @@ namespace rating_calculator {
       };
 
     public:
-      MultiKeyVolatileContainer(size_t initialSize)
+      MultiKeyVolatileContainer(std::size_t initialSize)
       {
         sortData_.reserve(initialSize);
         accessData_.reserve(initialSize);
@@ -143,12 +143,12 @@ namespace rating_calculator {
         return PositionedData(std::distance(sortData_.begin(), sortIter), **sortIter);
       }
 
-      PositionedDataContainer getHeadPositions(size_t nPositions) const
+      PositionedDataContainer getHeadPositions(std::size_t nPositions) const
       {
         PositionedDataContainer result;
         result.reserve(nPositions);
 
-        for (size_t i = 0; i < nPositions && i < sortData_.size(); ++i)
+        for (std::size_t i = 0; i < nPositions && i < sortData_.size(); ++i)
         {
           result.emplace_back(i, *sortData_[i]);
         }
@@ -156,13 +156,13 @@ namespace rating_calculator {
         return result;
       }
 
-      PositionedDataContainer getHighPositions(const AccessKey& key, size_t nPositions) const
+      PositionedDataContainer getHighPositions(const AccessKey& key, std::size_t nPositions) const
       {
         PositionedDataContainer result;
         result.reserve(nPositions);
 
         auto sortIter = findInSortContainer(key);
-        size_t position = std::distance(sortData_.begin(), sortIter);
+        std::size_t position = std::distance(sortData_.begin(), sortIter);
 
         auto beginIter = sortData_.begin();
         if (position >= nPositions)
@@ -178,13 +178,13 @@ namespace rating_calculator {
         return result;
       }
 
-      PositionedDataContainer getLowPositions(const AccessKey& key, size_t nPositions) const
+      PositionedDataContainer getLowPositions(const AccessKey& key, std::size_t nPositions) const
       {
         PositionedDataContainer result;
         result.reserve(nPositions);
 
         auto sortIter = findInSortContainer(key);
-        size_t positionFromEnd = std::distance(sortIter, sortData_.end() - 1);
+        std::size_t positionFromEnd = std::distance(sortIter, sortData_.end() - 1);
 
         auto endIter = sortData_.end() - 1;
         if (positionFromEnd >= nPositions)
@@ -223,7 +223,7 @@ namespace rating_calculator {
       typename SortContainer::iterator findInSortContainer(const ValuePtr& valuePtr)
       {
         auto result = static_cast<const MultiKeyVolatileContainer*>(this)->findInSortContainer(valuePtr);
-        size_t dist = std::distance(sortData_.cbegin(), result);
+        std::size_t dist = std::distance(sortData_.cbegin(), result);
 
         return (sortData_.begin() + dist);
       }

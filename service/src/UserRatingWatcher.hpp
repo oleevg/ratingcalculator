@@ -29,8 +29,8 @@ namespace rating_calculator {
 
   namespace service {
 
-    typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
-    typedef WsServer::Connection WsConnection;
+    using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
+    using WsConnection = WsServer::Connection;
 
     /**
      * @brief Class responsible for periodical informing connected users about its relative rating.
@@ -38,9 +38,9 @@ namespace rating_calculator {
     class UserRatingWatcher : public boost::noncopyable {
     private:
       struct UserConnection {
-        typedef std::shared_ptr<UserConnection> Ptr;
+        using Ptr = std::shared_ptr<UserConnection>;
 
-        UserConnection(const core::UserIdentifier& _userIdentifier, const std::shared_ptr<WsConnection>& _connection);
+        UserConnection(const core::UserIdentifier& userIdentifier, const std::shared_ptr<WsConnection>& connection);
 
         core::UserIdentifier userIdentifier;
         std::weak_ptr<WsConnection> connection;
@@ -48,7 +48,7 @@ namespace rating_calculator {
         std::atomic<bool> connected;
       };
 
-      typedef std::unordered_map<core::UserIdentifier, UserConnection::Ptr> UserConnectionCollection;
+      using UserConnectionCollection = std::unordered_map<core::UserIdentifier, UserConnection::Ptr>;
 
     public:
       /**
@@ -91,7 +91,7 @@ namespace rating_calculator {
                                   const std::weak_ptr<WsConnection>& connection);
 
     private:
-      size_t nRatingPositions_;
+      std::size_t nRatingPositions_;
       std::chrono::seconds ratingUpdateTimeout_;
       webapi::transport::WsProtocol<WsServer>::Ptr protocol_;
 

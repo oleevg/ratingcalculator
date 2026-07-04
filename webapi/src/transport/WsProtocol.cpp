@@ -46,16 +46,16 @@ namespace rating_calculator {
       } // namespace
 
       template <class ConnectionSide>
-      WsProtocol<ConnectionSide>::WsProtocol(size_t resendNumber, int resendTimeout)
+      WsProtocol<ConnectionSide>::WsProtocol(std::size_t resendNumber, int resendTimeout)
           : resendNumber_(resendNumber), resendTimeout_(resendTimeout), inCounter_(0), outCounter_(0), stopped(false)
       {}
 
-      template <class ConnectionSide> size_t WsProtocol<ConnectionSide>::getInCounter()
+      template <class ConnectionSide> std::size_t WsProtocol<ConnectionSide>::getInCounter()
       {
         return inCounter_;
       }
 
-      template <class ConnectionSide> size_t WsProtocol<ConnectionSide>::getNextOutCounter()
+      template <class ConnectionSide> std::size_t WsProtocol<ConnectionSide>::getNextOutCounter()
       {
         return (outCounter_++) % SIZE_MAX;
       }
@@ -127,7 +127,7 @@ namespace rating_calculator {
       template <class ConnectionSide>
       void WsProtocol<ConnectionSide>::removeFromResendStoreUnsafe(WsMessageIdentifier messageId)
       {
-        size_t erasedMessages = resendStore.erase(messageId);
+        std::size_t erasedMessages = resendStore.erase(messageId);
         mdebug_notice("Going to remove message with id '%d' from the resend store.", messageId,
                       core::ThreadHelper::threadIdToInt());
 

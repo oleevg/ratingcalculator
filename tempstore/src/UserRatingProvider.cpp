@@ -16,7 +16,7 @@ namespace rating_calculator {
 
   namespace tempstore {
 
-    UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, uint64_t periodDuration,
+    UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, std::uint64_t periodDuration,
                                            const core::IDataStoreFactory::Ptr& dataStoreFactory)
         : periodDuration_(periodDuration), stopped_(false), dataStoreFactory_(dataStoreFactory),
           sortedDealContainer_(UINT16_MAX)
@@ -41,7 +41,7 @@ namespace rating_calculator {
       return sortedDealContainer_.isPresent(userIdentifier);
     }
 
-    core::UserPositionsCollection UserRatingProvider::getHeadPositions(size_t nPositions) const
+    core::UserPositionsCollection UserRatingProvider::getHeadPositions(std::size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -59,7 +59,7 @@ namespace rating_calculator {
     }
 
     core::UserPositionsCollection UserRatingProvider::getHighPositions(const core::UserIdentifier& userIdentifier,
-                                                                       size_t nPositions) const
+                                                                       std::size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);
@@ -79,7 +79,7 @@ namespace rating_calculator {
     }
 
     core::UserPositionsCollection UserRatingProvider::getLowPositions(const core::UserIdentifier& userIdentifier,
-                                                                      size_t nPositions) const
+                                                                      std::size_t nPositions) const
     {
       core::UserPositionsCollection result;
       result.reserve(nPositions);

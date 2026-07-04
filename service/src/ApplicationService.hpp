@@ -26,10 +26,10 @@ namespace rating_calculator {
      * @brief The service class describing the application life cycle.
      */
     class ApplicationService : public std::enable_shared_from_this<ApplicationService>, boost::noncopyable {
-      typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
+      using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 
     public:
-      typedef std::shared_ptr<ApplicationService> Ptr;
+      using Ptr = std::shared_ptr<ApplicationService>;
 
     public:
       /**

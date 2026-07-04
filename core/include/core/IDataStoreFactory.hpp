@@ -22,7 +22,7 @@ namespace rating_calculator {
      */
     class IDataStoreFactory {
     public:
-      typedef std::shared_ptr<IDataStoreFactory> Ptr;
+      using Ptr = std::shared_ptr<IDataStoreFactory>;
 
     public:
       virtual ~IDataStoreFactory() = default;
