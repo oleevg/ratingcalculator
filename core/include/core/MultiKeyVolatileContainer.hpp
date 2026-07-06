@@ -27,8 +27,8 @@ namespace rating_calculator {
      * @tparam AccessKey The first key type with complexity O(1) for access operations.
      * @tparam SortKey The second key type with complexity ~ O(ln(N)) for access operations.
      * @tparam Value Custom type to be stored in container.
-     * @tparam accessKey Custom type public field pointer used as access key.
-     * @tparam sortKey Custom type public field pointer used as sort key.
+     * @tparam accessKey Custom type public field pointer used as an access key.
+     * @tparam sortKey Custom type public field pointer used as a sort key.
      * @tparam Modify A binary function object type describing data modification during update operations.
      * @tparam Hash A unary function object type describing hashing.
      * @tparam Pred A binary predicate describing items equality.
@@ -97,10 +97,8 @@ namespace rating_calculator {
               {
                 break;
               }
-              else
-              {
-                std::swap(*shiftIter, *sortIter);
-              }
+
+              std::swap(*shiftIter, *sortIter);
 
               sortIter = shiftIter;
             }

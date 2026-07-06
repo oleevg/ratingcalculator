@@ -1,6 +1,12 @@
 # Build directories
 build/
 
+# Notes
+Notes.md
+
+# Diagrams
+diagrams/
+
 # tempstore/test/
 
 # IDE/project settings

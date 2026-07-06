@@ -42,9 +42,8 @@ namespace rating_calculator {
         float amount;
       };
 
-      using SortedDealContainer =
-          core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData, &MultiKeyData::id,
-                                          &MultiKeyData::amount>;
+      using SortedDealContainer = core::MultiKeyVolatileContainer<core::UserIdentifier, float, MultiKeyData,
+                                                                  &MultiKeyData::id, &MultiKeyData::amount>;
 
     public:
       /**

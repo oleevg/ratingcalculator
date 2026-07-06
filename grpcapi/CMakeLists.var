@@ -1,0 +1,33 @@
+set(module_name grpcapi)
+
+set(module_type library)
+
+set(library_type)
+
+set(headers
+    include/grpcapi/GrpcTransportServer.hpp
+    include/grpcapi/GrpcTransportClient.hpp
+    )
+
+set(sources
+    src/GrpcTransportServer.cpp
+    src/GrpcTransportClient.cpp
+    )
+
+set(tests
+    )
+
+set(definitions
+    )
+
+set(libraries
+    ratingCalculator_core
+    )
+
+set(external_libraries
+    gRPC::grpc++
+    protobuf::libprotobuf
+    )
+
+set(libraries_test
+    )

@@ -27,7 +27,7 @@ namespace rating_calculator {
 
     private:
       core::UserInformation userInformation;
-      bool connected;
+      bool connected{false};
     };
 
   } // namespace test_client

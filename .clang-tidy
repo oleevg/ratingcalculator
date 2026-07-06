@@ -28,8 +28,8 @@ Checks: "-*,modernize-avoid-c-arrays,modernize-loop-convert,modernize-use-defaul
 
 WarningsAsErrors: ""
 
-# Only emit warnings for project headers; suppress Boost and system header noise
-HeaderFilterRegex: ".*/ratingcalculator/(core|webapi|tempstore|service|testClient)/.*"
+# Only emit warnings for project headers; suppress Boost, system, and vendored header noise
+HeaderFilterRegex: ".*/ratingcalculator/(core|tempstore|service|testClient)/.*|.*/ratingcalculator/webapi/(src|include/webapi/(serialization|transport))/.*"
 
 FormatStyle: file
 

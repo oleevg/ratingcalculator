@@ -26,11 +26,15 @@ set(headers
     include/webapi/serialization/JsonDeserializerWsMessage.hpp
     include/webapi/transport/WsMessage.hpp
     include/webapi/transport/WsProtocol.hpp
+    include/webapi/transport/WsTransportServer.hpp
+    include/webapi/transport/WsTransportClient.hpp
     )
 
 set(sources
     src/transport/WsMessage.cpp
     src/transport/WsProtocol.cpp
+    src/transport/WsTransportServer.cpp
+    src/transport/WsTransportClient.cpp
     )
 
 set(tests

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package rc;
+
+service RatingService {
+  rpc Connect(stream ClientEvent) returns (stream ServerEvent);
+}
+
+message UserRegistered {
+  uint64 user_id = 1;
+  string name    = 2;
+}
+
+message UserRenamed {
+  uint64 user_id = 1;
+  string name    = 2;
+}
+
+message UserConnected {
+  uint64 user_id = 1;
+}
+
+message UserDisconnected {
+  uint64 user_id = 1;
+}
+
+message UserDealWon {
+  uint64 user_id   = 1;
+  uint64 timestamp = 2;
+  float  amount    = 3;
+}
+
+message ClientEvent {
+  oneof payload {
+    UserRegistered   user_registered   = 1;
+    UserRenamed      user_renamed      = 2;
+    UserConnected    user_connected    = 3;
+    UserDisconnected user_disconnected = 4;
+    UserDealWon      user_deal_won     = 5;
+  }
+}
+
+message RpcUserPosition {
+  uint64 user_id   = 1;
+  string user_name = 2;
+  uint64 position  = 3;
+  float  amount    = 4;
+}
+
+message RpcUserRelativeRating {
+  RpcUserPosition          user_position  = 1;
+  repeated RpcUserPosition head_positions = 2;
+  repeated RpcUserPosition high_positions = 3;
+  repeated RpcUserPosition low_positions  = 4;
+}
+
+message ServerEvent {
+  oneof payload {
+    RpcUserRelativeRating user_relative_rating = 1;
+  }
+}

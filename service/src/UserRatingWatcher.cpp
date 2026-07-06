@@ -5,6 +5,8 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
+#include <vector>
+
 #include <core/ulog.h>
 
 #include <tempstore/UserRatingProvider.hpp>
@@ -15,17 +17,12 @@ namespace rating_calculator {
 
   namespace service {
 
-    const std::size_t secondsInWeek = 7 * 24 * 3600;
-
-    UserRatingWatcher::UserConnection::UserConnection(const core::UserIdentifier& userIdentifier,
-                                                      const std::shared_ptr<WsConnection>& connection)
-        : userIdentifier(userIdentifier), connection(connection), connected(true)
-    {}
+    constexpr std::size_t secondsInWeek = 7 * 24 * 3600;
 
     UserRatingWatcher::UserRatingWatcher(const std::chrono::seconds& ratingUpdateTimeout, std::size_t nRatingPositions,
                                          const core::IDataStoreFactory::Ptr& dataStoreFactory,
-                                         const webapi::transport::WsProtocol<WsServer>::Ptr& protocol)
-        : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions), protocol_(protocol),
+                                         const core::ITransportServer::Ptr& transport)
+        : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions), transport_(transport),
           stopped_(false), userRatingProvider_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
     {}
 
@@ -40,31 +37,23 @@ namespace rating_calculator {
             {
               while (!stopped_.load())
               {
-                std::unique_lock<std::mutex> lck(userConnectionsMutex_);
-                while (userConnections_.empty() && !stopped_.load())
+                std::vector<core::UserIdentifier> snapshot;
                 {
-                  userConnectionsCondVar_.wait_for(lck, std::chrono::seconds(1));
+                  std::unique_lock<std::mutex> lck(usersMutex_);
+                  while (connectedUsers_.empty() && !stopped_.load())
+                  {
+                    usersCondVar_.wait_for(lck, std::chrono::seconds(1));
+                  }
+                  snapshot.assign(connectedUsers_.begin(), connectedUsers_.end());
                 }
 
-                for (const auto& item : userConnections_)
+                for (core::UserIdentifier userId : snapshot)
                 {
-                  auto& userConnection = item.second;
-                  if (userConnection->connected.load())
+                  if (!stopped_.load())
                   {
-                    mdebug_info("User '%d' connected.", userConnection->userIdentifier);
-                    auto connection = userConnection->connection.lock();
-                    if (!connection)
-                    {
-                      mdebug_error("Found connected user '%d' with unspecified connection.",
-                                   userConnection->userIdentifier);
-                      continue;
-                    }
-
-                    sendUserRelativeRating(userConnection->userIdentifier, userConnection->connection);
+                    sendUserRelativeRating(userId);
                   }
                 }
-
-                lck.unlock();
 
                 if (!stopped_.load())
                 {
@@ -86,91 +75,72 @@ namespace rating_calculator {
           stopCondVar_.notify_one();
         }
 
+        {
+          std::lock_guard<std::mutex> lck(usersMutex_);
+          usersCondVar_.notify_all();
+        }
         userRatingProvider_.stop();
-        ratingUpdateThread_.join();
+        if (ratingUpdateThread_.joinable())
+        {
+          ratingUpdateThread_.join();
+        }
       }
     }
 
-    void UserRatingWatcher::userConnected(const core::UserIdentifier& userIdentifier,
-                                          const std::shared_ptr<WsConnection>& connection)
+    void UserRatingWatcher::userConnected(core::UserIdentifier userId)
     {
-      std::lock_guard<std::mutex> lck(userConnectionsMutex_);
+      std::lock_guard<std::mutex> lck(usersMutex_);
 
-      auto iter = userConnections_.find(userIdentifier);
-      if (iter == userConnections_.end())
+      const bool inserted = connectedUsers_.insert(userId).second;
+      if (!inserted)
       {
-        mdebug_info("New user connected: '%d'.", userIdentifier);
-
-        auto userConnection = std::make_shared<UserConnection>(userIdentifier, connection);
-        iter = userConnections_.insert({userIdentifier, userConnection}).first;
-
-        userConnectionsCondVar_.notify_one();
+        mdebug_warn("Duplicated connection received for user: '%lu'.", userId);
       }
       else
       {
-        if (iter->second->connected.load())
-        {
-          mdebug_warn("Duplicated connection received for user: '%d'.", userIdentifier);
-        }
-
-        iter->second->connected.store(true);
-        iter->second->connection = connection;
+        mdebug_info("New user connected: '%lu'.", userId);
+        usersCondVar_.notify_one();
       }
 
-      sendUserRelativeRating(userIdentifier, iter->second->connection);
+      sendUserRelativeRating(userId);
     }
 
-    void UserRatingWatcher::userDisconnected(const core::UserIdentifier& userIdentifier)
+    void UserRatingWatcher::userDisconnected(core::UserIdentifier userId)
     {
-      std::lock_guard<std::mutex> lck(userConnectionsMutex_);
+      std::lock_guard<std::mutex> lck(usersMutex_);
 
-      auto iter = userConnections_.find(userIdentifier);
-      if (iter == userConnections_.end())
+      if (connectedUsers_.erase(userId) == 0)
       {
-        mdebug_warn("Not connected user disconnected: '%d'.", userIdentifier);
+        mdebug_warn("Disconnection received for unknown user: '%lu'.", userId);
       }
       else
       {
-        if (!iter->second->connected.load())
-        {
-          mdebug_warn("Duplicated disconnection received for user: '%d'.", userIdentifier);
-        }
-
-        iter->second->connected.store(false);
-        iter->second->connection.reset();
+        mdebug_info("User disconnected: '%lu'.", userId);
       }
     }
 
-    void UserRatingWatcher::sendUserRelativeRating(const core::UserIdentifier& userIdentifier,
-                                                   const std::weak_ptr<WsConnection>& connection)
+    void UserRatingWatcher::sendUserRelativeRating(core::UserIdentifier userId)
     {
-      auto userConnection = connection.lock();
-      if (!userConnection)
+      mdebug_info("Going to send rating information for user: '%lu'.", userId);
+
+      if (!userRatingProvider_.isUserPresent(userId))
       {
-        mdebug_warn("Can't send user's rating as its connection has gone.");
-        return;
+        userRatingProvider_.addDeal(
+            core::DealInformation(userId, std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()), 0.0));
       }
 
-      mdebug_info("Going to send rating information for user: '%d'.", userIdentifier);
-
-      if (!userRatingProvider_.isUserPresent(userIdentifier))
-      {
-        // TODO: eliminate necessity to register user with 0.0 deal before his/her real deals information received.
-        userRatingProvider_.addDeal(core::DealInformation(
-            userIdentifier, std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()), 0.0));
-      }
-
-      auto userPosition = userRatingProvider_.getUserPosition(userIdentifier);
+      auto userPosition = userRatingProvider_.getUserPosition(userId);
       auto headPositions = userRatingProvider_.getHeadPositions(nRatingPositions_);
-      auto highPositions = userRatingProvider_.getHighPositions(userIdentifier, nRatingPositions_);
-      auto lowPositions = userRatingProvider_.getLowPositions(userIdentifier, nRatingPositions_);
+      auto highPositions = userRatingProvider_.getHighPositions(userId, nRatingPositions_);
+      auto lowPositions = userRatingProvider_.getLowPositions(userId, nRatingPositions_);
 
       core::UserRelativeRating userRelativeRating(userPosition, headPositions, highPositions, lowPositions);
 
       auto message = std::make_shared<core::Message<core::UserRelativeRating>>(core::MessageType::UserRelativeRating,
                                                                                userRelativeRating);
-      protocol_->sendMessage(message, userConnection);
+      transport_->sendToUser(userId, message);
     }
 
   } // namespace service
+
 } // namespace rating_calculator

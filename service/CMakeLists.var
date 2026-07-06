@@ -35,6 +35,9 @@ set(libraries
     ratingCalculator_core
     ratingCalculator_tempstore
     ratingCalculator_webapi
+    ratingCalculator_grpcapi
+    ratingCalculator_kafkaapi
+    ratingCalculator_rabbitapi
     )
 
 set(libraries_UNIX

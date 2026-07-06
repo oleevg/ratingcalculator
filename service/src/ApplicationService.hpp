@@ -11,10 +11,10 @@
 #include <chrono>
 #include <memory>
 
-#include <boost/enable_shared_from_this.hpp>
+#include <boost/noncopyable.hpp>
 
-#include <webapi/websockets/server_ws.hpp>
-#include <webapi/transport/WsProtocol.hpp>
+#include <core/ITransportServer.hpp>
+#include <core/IDataStoreFactory.hpp>
 
 #include "UserRatingWatcher.hpp"
 
@@ -23,38 +23,33 @@ namespace rating_calculator {
   namespace service {
 
     /**
-     * @brief The service class describing the application life cycle.
+     * @brief Wires transport, storage, and rating broadcast together.
+     *
+     * Transport-agnostic: accepts any ITransportServer implementation.
+     * The concrete transport (WS, gRPC, Kafka, RabbitMQ) is selected and
+     * constructed by Application before being passed here.
      */
     class ApplicationService : public std::enable_shared_from_this<ApplicationService>, boost::noncopyable {
-      using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
-
     public:
       using Ptr = std::shared_ptr<ApplicationService>;
 
-    public:
       /**
-       * @brief ctor
-       * @param port The server's port number to listen.
-       * @param timeout User rating update timeout in seconds.
-       * @param threadPoolSize The service's thread pool size.
+       * @param transport       Ready-to-use transport (not yet started).
+       * @param timeout         Rating broadcast interval.
+       * @param nRatingPositions Neighbour positions to include per user.
        */
-      ApplicationService(int port, const std::chrono::seconds& timeout, size_t threadPoolSize);
+      ApplicationService(const core::ITransportServer::Ptr& transport, const std::chrono::seconds& timeout,
+                         size_t nRatingPositions = 10);
 
-      /**
-       * @brief Starts the application life cycle.
-       * @return The application's return code.
-       */
       int run();
 
     private:
-      void setWsEndpoints();
+      void dispatchMessage(core::BaseMessage::Ptr message);
 
     private:
-      WsServer server;
-      webapi::transport::WsProtocol<WsServer>::Ptr protocol;
-
-      core::IDataStoreFactory::Ptr dataStoreFactory;
-      UserRatingWatcher userRatingWatcher;
+      core::ITransportServer::Ptr transport_;
+      core::IDataStoreFactory::Ptr dataStoreFactory_;
+      UserRatingWatcher userRatingWatcher_;
     };
 
   } // namespace service

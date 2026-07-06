@@ -14,91 +14,52 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <unordered_map>
+#include <unordered_set>
 
 #include <boost/noncopyable.hpp>
 
+#include <core/ITransportServer.hpp>
 #include <core/TimeHelper.hpp>
 
 #include <tempstore/UserRatingProvider.hpp>
-
-#include <webapi/transport/WsProtocol.hpp>
-#include <webapi/websockets/server_ws.hpp>
 
 namespace rating_calculator {
 
   namespace service {
 
-    using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
-    using WsConnection = WsServer::Connection;
-
     /**
-     * @brief Class responsible for periodical informing connected users about its relative rating.
+     * @brief Periodically pushes relative rating updates to all connected users.
      */
     class UserRatingWatcher : public boost::noncopyable {
-    private:
-      struct UserConnection {
-        using Ptr = std::shared_ptr<UserConnection>;
-
-        UserConnection(const core::UserIdentifier& userIdentifier, const std::shared_ptr<WsConnection>& connection);
-
-        core::UserIdentifier userIdentifier;
-        std::weak_ptr<WsConnection> connection;
-        core::TimePoint connectionTime; // not used so far
-        std::atomic<bool> connected;
-      };
-
-      using UserConnectionCollection = std::unordered_map<core::UserIdentifier, UserConnection::Ptr>;
-
     public:
       /**
-       * @brief ctor
-       * @param ratingUpdateTimeout The rating update timeout in seconds.
-       * @param nRatingPositions The number of positions to include in relative rating data.
-       * @param dataStoreFactory The instance of factory class responsible for creating implementations of core data
-       * store interfaces.
-       * @param protocol The instance of WsProtocol class used for transport channel handling.
+       * @param ratingUpdateTimeout  Interval between broadcast cycles.
+       * @param nRatingPositions     Neighbour positions to include in each update.
+       * @param dataStoreFactory     Storage factory.
+       * @param transport            Transport used to send rating messages to users.
        */
       UserRatingWatcher(const std::chrono::seconds& ratingUpdateTimeout, size_t nRatingPositions,
                         const core::IDataStoreFactory::Ptr& dataStoreFactory,
-                        const webapi::transport::WsProtocol<WsServer>::Ptr& protocol);
+                        const core::ITransportServer::Ptr& transport);
 
-      /**
-       * @brief Handles user connection event.
-       * @param userIdentifier User's identifier.
-       * @param connection User's corresponding connection.
-       */
-      void userConnected(const core::UserIdentifier& userIdentifier, const std::shared_ptr<WsConnection>& connection);
+      void userConnected(core::UserIdentifier userId);
+      void userDisconnected(core::UserIdentifier userId);
 
-      /**
-       * @brief Handles user disconnection event,
-       * @param userIdentifier User's identifier.
-       */
-      void userDisconnected(const core::UserIdentifier& userIdentifier);
-
-      /**
-       * @brief Starts the thread responsible for informing connected users about its relative rating.
-       */
       void start();
-
-      /**
-       * @brief Stops the rating informing thread.
-       */
       void stop();
 
     private:
-      void sendUserRelativeRating(const core::UserIdentifier& userIdentifier,
-                                  const std::weak_ptr<WsConnection>& connection);
+      void sendUserRelativeRating(core::UserIdentifier userId);
 
     private:
       std::size_t nRatingPositions_;
       std::chrono::seconds ratingUpdateTimeout_;
-      webapi::transport::WsProtocol<WsServer>::Ptr protocol_;
+      core::ITransportServer::Ptr transport_;
 
       std::thread ratingUpdateThread_;
-      std::mutex userConnectionsMutex_;
-      std::condition_variable userConnectionsCondVar_;
-      UserConnectionCollection userConnections_;
+      std::mutex usersMutex_;
+      std::condition_variable usersCondVar_;
+      std::unordered_set<core::UserIdentifier> connectedUsers_;
 
       std::mutex stopMutex_;
       std::condition_variable stopCondVar_;

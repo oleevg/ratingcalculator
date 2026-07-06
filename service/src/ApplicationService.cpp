@@ -6,16 +6,13 @@
  */
 
 #include <memory>
-#include <thread>
-#include <string>
 
-#include <core/Types.hpp>
 #include <core/BaseException.hpp>
+#include <core/EnumConverter.hpp>
+#include <core/Types.hpp>
 #include <core/ulog.h>
 
 #include <tempstore/DataStoreFactory.hpp>
-
-#include <webapi/transport/WsProtocol.hpp>
 
 #include "ApplicationService.hpp"
 
@@ -23,120 +20,80 @@ namespace rating_calculator {
 
   namespace service {
 
-    ApplicationService::ApplicationService(int port, const std::chrono::seconds& timeout, size_t threadPoolSize)
-        : protocol(std::make_shared<webapi::transport::WsProtocol<WsServer>>()),
-          dataStoreFactory(std::make_shared<tempstore::DataStoreFactory>()),
-          userRatingWatcher(timeout, 10, dataStoreFactory, protocol)
+    ApplicationService::ApplicationService(const core::ITransportServer::Ptr& transport,
+                                           const std::chrono::seconds& timeout, size_t nRatingPositions)
+        : transport_(transport), dataStoreFactory_(std::make_shared<tempstore::DataStoreFactory>()),
+          userRatingWatcher_(timeout, nRatingPositions, dataStoreFactory_, transport_)
+    {}
+
+    void ApplicationService::dispatchMessage(core::BaseMessage::Ptr message)
     {
-      server.config.port = port;
-      server.config.thread_pool_size = threadPoolSize;
-    }
-
-    void ApplicationService::setWsEndpoints()
-    {
-      auto& echo = server.endpoint["^/rating/?$"];
-
-      auto selfType = shared_from_this();
-
-      echo.on_message =
-          [selfType](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message)
+      if (!message)
       {
-        try
-        {
-          core::BaseMessage::Ptr baseMessage = selfType->protocol->parseMessage(message, connection);
+        return;
+      }
 
-          if (!baseMessage)
-          {
-            // The protocol service message was received.
-            return;
-          }
+      try
+      {
+        auto& userDataStore = dataStoreFactory_->getUserDataStore();
+        auto& userDealDataStore = dataStoreFactory_->getUserDealDataStore();
 
-          auto& userDataStore = selfType->dataStoreFactory->getUserDataStore();
-          auto& userDealDataStore = selfType->dataStoreFactory->getUserDealDataStore();
-
-          if (baseMessage->getType() == core::MessageType::UserRegistered)
-          {
-            auto userRegisteredMessage = std::dynamic_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
-            userDataStore.addUser(userRegisteredMessage->getData());
-          }
-          else if (baseMessage->getType() == core::MessageType::UserRenamed)
-          {
-            auto userRenamedMessage = std::dynamic_pointer_cast<core::Message<core::UserInformation>>(baseMessage);
-            userDataStore.renameUser(userRenamedMessage->getData().id, userRenamedMessage->getData().name);
-          }
-          else if (baseMessage->getType() == core::MessageType::UserConnected)
-          {
-            auto userConnectedMessage = std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
-            selfType->userRatingWatcher.userConnected(userConnectedMessage->getData().id, connection);
-          }
-          else if (baseMessage->getType() == core::MessageType::UserDisconnected)
-          {
-            auto userDisconnectedMessage =
-                std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(baseMessage);
-            selfType->userRatingWatcher.userDisconnected(userDisconnectedMessage->getData().id);
-          }
-          else if (baseMessage->getType() == core::MessageType::UserDealWon)
-          {
-            auto userDealWonMessage = std::dynamic_pointer_cast<core::Message<core::DealInformation>>(baseMessage);
-            userDealDataStore.addDeal(userDealWonMessage->getData());
-          }
-          else
-          {
-            const auto& enumConverter = core::EnumConverter<core::MessageType>::get_const_instance();
-            mdebug_warn("Skip unsupported message type '%s' processing.",
-                        enumConverter.toString(baseMessage->getType()).c_str());
-          }
-        } catch (const core::BaseException& exc)
+        if (message->getType() == core::MessageType::UserRegistered)
         {
-          mdebug_error("%s", exc.what());
-        } catch (const std::exception& exc)
-        {
-          mdebug_error("Unknown error occurred: %s", exc.what());
+          auto msg = std::dynamic_pointer_cast<core::Message<core::UserInformation>>(message);
+          userDataStore.addUser(msg->getData());
         }
-      };
-
-      echo.on_open = [](std::shared_ptr<WsServer::Connection> connection)
+        else if (message->getType() == core::MessageType::UserRenamed)
+        {
+          auto msg = std::dynamic_pointer_cast<core::Message<core::UserInformation>>(message);
+          userDataStore.renameUser(msg->getData().id, msg->getData().name);
+        }
+        else if (message->getType() == core::MessageType::UserConnected)
+        {
+          auto msg = std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(message);
+          userRatingWatcher_.userConnected(msg->getData().id);
+        }
+        else if (message->getType() == core::MessageType::UserDisconnected)
+        {
+          auto msg = std::dynamic_pointer_cast<core::Message<core::UserIdInformation>>(message);
+          userRatingWatcher_.userDisconnected(msg->getData().id);
+        }
+        else if (message->getType() == core::MessageType::UserDealWon)
+        {
+          auto msg = std::dynamic_pointer_cast<core::Message<core::DealInformation>>(message);
+          userDealDataStore.addDeal(msg->getData());
+        }
+        else
+        {
+          const auto& enumConverter = core::EnumConverter<core::MessageType>::get_const_instance();
+          mdebug_warn("Skip unsupported message type '%s'.", enumConverter.toString(message->getType()).c_str());
+        }
+      } catch (const core::BaseException& exc)
       {
-        mdebug_info("Client connected: %s:%d (0x%x)", connection->remote_endpoint_address().c_str(),
-                    connection->remote_endpoint_port(), connection.get());
-      };
-
-      // See RFC 6455 7.4.1. for status codes
-      echo.on_close = [](std::shared_ptr<WsServer::Connection> connection, int status, const std::string& /*reason*/)
+        mdebug_error("%s", exc.what());
+      } catch (const std::exception& exc)
       {
-        mdebug_info("Connection %s:%d (0x%x) closed with status code: %d.",
-                    connection->remote_endpoint_address().c_str(), connection->remote_endpoint_port(), connection.get(),
-                    status);
-      };
-
-      echo.on_error = [selfType](std::shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code& ec)
-      {
-        mdebug_error("Error in connection 0x%x. Error: %s (%d).", connection.get(), ec.message().c_str(), ec);
-        selfType->server.stop();
-      };
+        mdebug_error("Unknown error: %s", exc.what());
+      }
     }
 
     int ApplicationService::run()
     {
-      setWsEndpoints();
-
-      auto selfCopy = shared_from_this();
-
-      std::thread serverThread(
-          [selfCopy]()
+      auto self = shared_from_this();
+      transport_->setMessageHandler(
+          [self](core::BaseMessage::Ptr msg)
           {
-            selfCopy->server.start();
+            self->dispatchMessage(std::move(msg));
           });
 
-      mdebug_info("Listener started.");
+      transport_->start();
+      userRatingWatcher_.start();
 
-      protocol->start();
-      userRatingWatcher.start();
+      mdebug_info("Service started.");
 
-      serverThread.join();
+      transport_->run(); // blocks until transport stops
 
-      userRatingWatcher.stop();
-      protocol->stop();
+      userRatingWatcher_.stop();
 
       return 0;
     }

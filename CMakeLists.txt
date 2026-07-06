@@ -43,6 +43,8 @@ file(GLOB_RECURSE ALL_PROJECT_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_SOURCE_DIR}/testClient/*.cpp"
   "${CMAKE_SOURCE_DIR}/testClient/*.hpp"
   "${CMAKE_SOURCE_DIR}/webapi/*.cpp"
+  "${CMAKE_SOURCE_DIR}/grpcapi/*.hpp"
+  "${CMAKE_SOURCE_DIR}/grpcapi/*.cpp"
 )
 list(FILTER ALL_PROJECT_SOURCES EXCLUDE REGEX ".*/websockets/.*")
 
@@ -85,6 +87,11 @@ if(CLANG_TIDY_EXE)
     COMMENT "Running clang-tidy"
     VERBATIM
   )
+  add_custom_target(tidy-fix
+    COMMAND ${CLANG_TIDY_EXE} -p ${CMAKE_BINARY_DIR} --fix --fix-errors ${TIDY_EXTRA_ARGS} ${TIDY_SOURCE_FILES}
+    COMMENT "Running clang-tidy with auto-fix"
+    VERBATIM
+  )
 else()
-  message(STATUS "clang-tidy not found — tidy target disabled")
+  message(STATUS "clang-tidy not found — tidy/tidy-fix targets disabled")
 endif()

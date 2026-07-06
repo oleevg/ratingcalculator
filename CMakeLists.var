@@ -17,6 +17,9 @@ set(modules
     core
     tempstore
     webapi
+    grpcapi
+    kafkaapi
+    rabbitapi
     service
     testClient
     )
@@ -25,6 +28,12 @@ set(CMAKE_BUILD_TYPE Debug)
 if(NOT DEFINED BOOST_ROOT)
   set(BOOST_ROOT "/opt/homebrew/Cellar/boost/1.90.0_1")
 endif()
+
+# gRPC and Protobuf — installed via Homebrew; override with -DGRPC_ROOT=... if needed
+if(NOT DEFINED GRPC_ROOT)
+  set(GRPC_ROOT "/opt/homebrew")
+endif()
+list(APPEND CMAKE_PREFIX_PATH ${GRPC_ROOT})
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_MULTITHREADED ON)
 

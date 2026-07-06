@@ -31,6 +31,7 @@ set(definitions
 set(libraries
     ratingCalculator_core
     ratingCalculator_webapi
+    ratingCalculator_grpcapi
     )
 
 set(libraries_UNIX

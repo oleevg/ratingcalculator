@@ -5,36 +5,32 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
-#include <string>
-#include <memory>
 #include <iostream>
-#include <thread>
-#include <atomic>
+#include <memory>
 #include <random>
+#include <string>
+#include <thread>
 
-#include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <boost/program_options.hpp>
 
+#include <core/ITransportClient.hpp>
 #include <core/ulog.h>
 
-#include <webapi/websockets/client_ws.hpp>
-#include <webapi/transport/WsProtocol.hpp>
+#include <webapi/transport/WsTransportClient.hpp>
+#include <grpcapi/GrpcTransportClient.hpp>
 
 #include "RequestGenerator.hpp"
 
-using WsClient = SimpleWeb::SocketClient<SimpleWeb::WS>;
-
-namespace core = rating_calculator::core;
-namespace transport = rating_calculator::webapi::transport;
 namespace options = boost::program_options;
 
 int main(int argc, const char* argv[])
 {
-  /* Default parameters definition */
   const std::string addressDefault = "localhost";
   const int portDefault = 88888;
   const int requestTimeoutDefault = 1;
   const std::size_t nUsersDefault = 100;
+  const std::string transportDefault = "ws";
 
   options::options_description optionDescription((boost::format("Usage: %s [options]... \nOptions") % argv[0]).str());
 
@@ -42,106 +38,91 @@ int main(int argc, const char* argv[])
   int port = portDefault;
   int requestTimeout = requestTimeoutDefault;
   std::size_t nUsers = nUsersDefault;
+  std::string transportName = transportDefault;
 
   optionDescription.add_options()("address,a", options::value<std::string>(&address)->default_value(addressDefault),
-                                  "The server address to connect to.")(
-      "port,p", options::value<int>(&port)->default_value(portDefault), "The port number to connect to.")(
+                                  "Server address.")("port,p", options::value<int>(&port)->default_value(portDefault),
+                                                     "Server port.")(
       "timeout,t", options::value<int>(&requestTimeout)->default_value(requestTimeoutDefault),
-      "Timeout in seconds to send generated test requests.")(
-      "users,u", options::value<std::size_t>(&nUsers)->default_value(nUsersDefault),
-      "Maximum number of test users.")("help,h", "As it says.");
+      "Seconds between generated requests.")(
+      "users,u", options::value<std::size_t>(&nUsers)->default_value(nUsersDefault), "Number of simulated users.")(
+      "transport", options::value<std::string>(&transportName)->default_value(transportDefault),
+      "Transport to use: ws | grpc.")("help,h", "Show this help message.");
 
   options::variables_map variableMap;
-
   options::store(options::parse_command_line(argc, argv, optionDescription), variableMap);
   options::notify(variableMap);
 
   if (variableMap.count("help"))
   {
     std::cout << optionDescription << "\n";
-    exit(0);
+    return 0;
   }
 
-  std::atomic<bool> stopped(false);
-
-  std::string wsUri = (boost::format("%s:%d/rating") % address % port).str();
-  WsClient client(wsUri);
-
-  std::shared_ptr<WsClient::Connection> clientConnection;
-
-  transport::WsProtocol<WsClient> protocol;
-  protocol.start();
-
-  client.on_message =
-      [&protocol](std::shared_ptr<WsClient::Connection> connection, std::shared_ptr<WsClient::Message> message)
+  // Build the transport
+  rating_calculator::core::ITransportClient::Ptr transport;
+  if (transportName == "ws")
   {
-    core::BaseMessage::Ptr baseMessage = protocol.parseMessage(message, connection);
-  };
-
-  client.on_open = [&clientConnection, wsUri](std::shared_ptr<WsClient::Connection> connection)
+    transport = std::make_shared<rating_calculator::webapi::transport::WsTransportClient>(address, port);
+  }
+  else if (transportName == "grpc")
   {
-    mdebug_info("Connected to '%s'.", wsUri.c_str());
-    clientConnection = connection;
-  };
-
-  client.on_close = [](std::shared_ptr<WsClient::Connection> /*connection*/, int status, const std::string& /*reason*/)
+    transport = std::make_shared<rating_calculator::grpcapi::GrpcTransportClient>(address, port);
+  }
+  else
   {
-    mdebug_info("Client: Closed connection with status code '%d'.", status);
-  };
+    std::cerr << "Unknown transport '" << transportName << "'. Valid values: ws, grpc.\n";
+    return 1;
+  }
 
-  // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-  client.on_error =
-      [&stopped, &client](std::shared_ptr<WsClient::Connection> connection, const SimpleWeb::error_code& ec)
-  {
-    mdebug_error("Error in connection. Error: %s (%d).", ec.message().c_str(), ec);
-
-    client.stop();
-    stopped.store(true);
-  };
-
-  std::thread clientThread(
-      [&client]()
+  transport->setMessageHandler(
+      [](rating_calculator::core::BaseMessage::Ptr /*msg*/)
       {
-        client.start();
+        // Rating updates from the server are received here.
+        // In a real client this would update a UI or trigger re-pricing.
       });
 
-  while (!clientConnection && !stopped.load())
+  transport->connect();
+
+  if (!transport->waitForConnection(std::chrono::seconds(10)))
   {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    mdebug_error("Failed to connect to %s:%d via %s.", address.c_str(), port, transportName.c_str());
+    return 1;
   }
+
+  mdebug_info("Connected to %s:%d via %s.", address.c_str(), port, transportName.c_str());
 
   rating_calculator::test_client::RequestGenerator requestGenerator(nUsers);
 
   std::thread usersRegisterThread(
-      [nUsers, clientConnection, &requestGenerator, &protocol, &stopped]()
+      [nUsers, &requestGenerator, &transport]()
       {
         std::mt19937 rg{std::random_device{}()};
         std::uniform_int_distribution<std::size_t> pickTimeout(1, 1000);
 
-        while (requestGenerator.getRegisteredUsersNumber() != nUsers && !stopped.load())
+        while (requestGenerator.getRegisteredUsersNumber() != nUsers)
         {
-          auto userRegisteredMessage = requestGenerator.generateUserRegisteredMessage();
-          protocol.sendMessage(userRegisteredMessage, clientConnection);
-
+          auto message = requestGenerator.generateUserRegisteredMessage();
+          transport->sendMessage(message);
           std::this_thread::sleep_for(std::chrono::milliseconds(pickTimeout(rg)));
         }
       });
 
-  // Requests generation loop
-  while (!stopped.load())
+  while (true)
   {
     requestGenerator.waitForUsersToRegister();
 
     auto message = requestGenerator.generateUserCommonMessage();
-    protocol.sendMessage(message, clientConnection);
+    if (message)
+    {
+      transport->sendMessage(message);
+    }
 
     std::this_thread::sleep_for(std::chrono::seconds(requestTimeout));
   }
 
-  protocol.stop();
-
   usersRegisterThread.join();
-  clientThread.join();
+  transport->disconnect();
 
   return 0;
 }

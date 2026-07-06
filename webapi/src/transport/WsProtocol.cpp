@@ -47,7 +47,7 @@ namespace rating_calculator {
 
       template <class ConnectionSide>
       WsProtocol<ConnectionSide>::WsProtocol(std::size_t resendNumber, int resendTimeout)
-          : resendNumber_(resendNumber), resendTimeout_(resendTimeout), inCounter_(0), outCounter_(0), stopped(false)
+          : resendNumber_(resendNumber), resendTimeout_(resendTimeout), stopped(false)
       {}
 
       template <class ConnectionSide> std::size_t WsProtocol<ConnectionSide>::getInCounter()

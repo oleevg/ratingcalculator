@@ -46,12 +46,11 @@ namespace rating_calculator {
 
         public:
           MessageData(const std::shared_ptr<typename ConnectionSide::Connection>& connection, const WsData& message)
-              : connection(connection), message(message), resendCounter(0),
-                lastSentTimePoint(std::chrono::system_clock::now())
+              : connection(connection), message(message), lastSentTimePoint(std::chrono::system_clock::now())
           {}
 
           WsData message;
-          std::size_t resendCounter;
+          std::size_t resendCounter{0};
           std::weak_ptr<typename ConnectionSide::Connection> connection;
           std::chrono::system_clock::time_point lastSentTimePoint;
         };
@@ -108,8 +107,8 @@ namespace rating_calculator {
         std::size_t resendNumber_;
         int resendTimeout_;
 
-        std::size_t inCounter_;
-        std::size_t outCounter_;
+        std::size_t inCounter_{0};
+        std::size_t outCounter_{0};
 
         ResendMessageStore resendStore;
 

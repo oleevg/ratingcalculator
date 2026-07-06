@@ -5,6 +5,7 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -12,7 +13,7 @@
 
 #include <core/ulog.h>
 
-static const int max_input_size=1024 * 1024;
+static const int max_input_size = 4096;
 
 static inline char* getCurrentTime(char* buffer, size_t bufferSize)
 {

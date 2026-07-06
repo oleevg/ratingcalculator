@@ -28,16 +28,16 @@ struct MultiKeyVolatileContainerFixture {
   MultiKeyVolatileContainerFixture() : multiKeyContainer(UINT16_MAX)
   {
     std::vector<UserData> users;
-    users.push_back(UserData(5, 0.4));
-    users.push_back(UserData(9, 0.0));
-    users.push_back(UserData(1, 0.8));
-    users.push_back(UserData(0, 0.9));
-    users.push_back(UserData(2, 0.7));
-    users.push_back(UserData(4, 0.5));
-    users.push_back(UserData(6, 0.3));
-    users.push_back(UserData(7, 0.2));
-    users.push_back(UserData(3, 0.6));
-    users.push_back(UserData(8, 0.1));
+    users.emplace_back(5, 0.4);
+    users.emplace_back(9, 0.0);
+    users.emplace_back(1, 0.8);
+    users.emplace_back(0, 0.9);
+    users.emplace_back(2, 0.7);
+    users.emplace_back(4, 0.5);
+    users.emplace_back(6, 0.3);
+    users.emplace_back(7, 0.2);
+    users.emplace_back(3, 0.6);
+    users.emplace_back(8, 0.1);
 
     for (const auto& user : users)
     {

@@ -22,6 +22,8 @@ set(headers
     include/core/IUserDataStore.hpp
     include/core/IUserDealDataStore.hpp
     include/core/IDataStoreFactory.hpp
+    include/core/ITransportServer.hpp
+    include/core/ITransportClient.hpp
     include/core/MultiKeyVolatileContainer.hpp
     )
 

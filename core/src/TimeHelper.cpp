@@ -5,6 +5,7 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
+#include <array>
 #include <ctime>
 #include <ratio>
 
@@ -48,11 +49,11 @@ namespace rating_calculator {
       time_t tTime = std::chrono::system_clock::to_time_t(timePoint);
 
       struct tm* tmTime = std::gmtime(&tTime);
-      char buffer[80];
+      std::array<char, 80> buffer{};
 
-      strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", tmTime);
+      strftime(buffer.data(), buffer.size(), "%d-%m-%Y %H:%M:%S", tmTime);
 
-      return std::string(buffer);
+      return std::string(buffer.data());
     }
   } // namespace core
 
