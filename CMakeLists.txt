@@ -95,3 +95,16 @@ if(CLANG_TIDY_EXE)
 else()
   message(STATUS "clang-tidy not found — tidy/tidy-fix targets disabled")
 endif()
+
+# ── Smoke tests (integration) ───────────────────────────────────────────────
+
+add_test(
+  NAME smoke
+  COMMAND ${CMAKE_SOURCE_DIR}/test/smoke.sh
+    $<TARGET_FILE:ratingCalculator_service>
+    $<TARGET_FILE:ratingCalculator_testClient>
+)
+set_tests_properties(smoke PROPERTIES
+  TIMEOUT 60
+  LABELS  integration
+)
