@@ -148,6 +148,7 @@ namespace rating_calculator {
             rc::ServerEvent event;
             while (!impl_->stopped.load() && impl_->stream->Read(&event))
             {
+              mdebug_notice("Received 'DATA' message: '%s'.", event.DebugString().c_str());
               auto message = fromServerEvent(event);
               if (message && impl_->messageHandler)
               {
@@ -175,6 +176,7 @@ namespace rating_calculator {
       if (event.payload_case() == rc::ClientEvent::PAYLOAD_NOT_SET)
         return;
 
+      mdebug_notice("Going to send 'DATA' message: '%s'.", event.DebugString().c_str());
       std::lock_guard<std::mutex> lck(impl_->writeMutex);
       if (!impl_->stream->Write(event))
       {

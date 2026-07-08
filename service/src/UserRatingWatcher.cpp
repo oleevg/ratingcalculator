@@ -28,8 +28,6 @@ namespace rating_calculator {
 
     void UserRatingWatcher::start()
     {
-      userRatingProvider_.start();
-
       if (!stopped_.load())
       {
         ratingUpdateThread_ = std::thread(
@@ -78,7 +76,6 @@ namespace rating_calculator {
       if (stopped_.compare_exchange_strong(expected, true))
       {
         cv_.notify_all();
-        userRatingProvider_.stop();
         if (ratingUpdateThread_.joinable())
         {
           ratingUpdateThread_.join();

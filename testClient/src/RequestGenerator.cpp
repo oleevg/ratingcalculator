@@ -106,10 +106,11 @@ namespace rating_calculator {
     void RequestGenerator::waitForUsersToRegister()
     {
       std::unique_lock<std::mutex> lck(usersMutex);
-      while (users.empty())
-      {
-        usersCondVar.wait(lck);
-      }
+      usersCondVar.wait(lck,
+                        [this]()
+                        {
+                          return !users.empty();
+                        });
     }
 
     std::size_t RequestGenerator::getRegisteredUsersNumber() const

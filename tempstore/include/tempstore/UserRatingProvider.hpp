@@ -15,7 +15,6 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <atomic>
 
 #include <boost/noncopyable.hpp>
 
@@ -102,16 +101,6 @@ namespace rating_calculator {
        */
       bool isUserPresent(const core::UserIdentifier& userIdentifier) const;
 
-      /**
-       * @brief Starts rating calculation process.
-       */
-      void start();
-
-      /**
-       * @brief Stops rating calculation process.
-       */
-      void stop();
-
     private:
       void updatePeriod(const core::TimePoint& startTime);
 
@@ -122,10 +111,10 @@ namespace rating_calculator {
 
       std::thread watcherThread_;
       mutable std::mutex storeMutex_;
-      std::atomic<bool> stopped_;
 
       std::mutex stopMutex_;
       std::condition_variable stopCondVar_;
+      bool stopped_{false};
 
       core::IDataStoreFactory::Ptr dataStoreFactory_;
       SortedDealContainer sortedDealContainer_;

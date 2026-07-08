@@ -144,7 +144,7 @@ namespace rating_calculator {
         while (stream->Read(&event))
         {
           core::UserIdentifier userId = extractUserId(event);
-
+          mdebug_notice("Received 'DATA' message: '%s'.", event.DebugString().c_str());
           {
             std::lock_guard<std::mutex> lock(streamsMutex);
             void* key = static_cast<void*>(stream);
@@ -196,6 +196,7 @@ namespace rating_calculator {
         if (!ev.has_user_relative_rating())
           return;
 
+        mdebug_notice("Going to send 'DATA' message: '%s'.", ev.DebugString().c_str());
         std::lock_guard<std::mutex> wlock(handle->writeMutex);
         if (!handle->stream->Write(ev))
         {

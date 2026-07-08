@@ -18,8 +18,7 @@ namespace rating_calculator {
 
     UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, std::uint64_t periodDuration,
                                            const core::IDataStoreFactory::Ptr& dataStoreFactory)
-        : periodDuration_(periodDuration), stopped_(false), dataStoreFactory_(dataStoreFactory),
-          sortedDealContainer_(UINT16_MAX)
+        : periodDuration_(periodDuration), dataStoreFactory_(dataStoreFactory), sortedDealContainer_(UINT16_MAX)
     {
       updatePeriod(core::TimeHelper::getPreviousWeekDay(std::chrono::system_clock::now(), startPeriodDay));
 
@@ -29,11 +28,42 @@ namespace rating_calculator {
           {
             addDeal(dealInformation);
           });
+
+      watcherThread_ = std::thread(
+          [this]()
+          {
+            while (true)
+            {
+              {
+                std::unique_lock<std::mutex> lck(stopMutex_);
+                stopCondVar_.wait_until(lck, endTime_, [this]() { return stopped_; });
+                if (stopped_)
+                {
+                  break;
+                }
+              }
+
+              {
+                std::lock_guard<std::mutex> storeLock(storeMutex_);
+                sortedDealContainer_.clear();
+              }
+              mdebug_info("Cleared sorted deal table.");
+              updatePeriod(endTime_);
+            }
+          });
     }
 
     UserRatingProvider::~UserRatingProvider()
     {
-      stop();
+      {
+        std::lock_guard<std::mutex> lck(stopMutex_);
+        stopped_ = true;
+        stopCondVar_.notify_one();
+      }
+      if (watcherThread_.joinable())
+      {
+        watcherThread_.join();
+      }
     }
 
     bool UserRatingProvider::isUserPresent(const core::UserIdentifier& userIdentifier) const
@@ -119,48 +149,6 @@ namespace rating_calculator {
       mdebug_info("Updated rating period: startTime = '%s', endTime = '%s', now = '%s'.",
                   core::TimeHelper::toString(startTime_).c_str(), core::TimeHelper::toString(endTime_).c_str(),
                   core::TimeHelper::toString(std::chrono::system_clock::now()).c_str());
-    }
-
-    void UserRatingProvider::start()
-    {
-      if (!stopped_.load())
-      {
-        watcherThread_ = std::thread(
-            [this]()
-            {
-              while (!stopped_.load())
-              {
-                std::unique_lock<std::mutex> stopLock(stopMutex_);
-                auto condVarStatus = stopCondVar_.wait_until(stopLock, endTime_);
-
-                if (condVarStatus == std::cv_status::timeout)
-                {
-                  std::lock_guard<std::mutex> storeLock(storeMutex_);
-                  sortedDealContainer_.clear();
-                  mdebug_info("Cleared sorted deal table.");
-
-                  updatePeriod(endTime_);
-                }
-              }
-            });
-      }
-    }
-
-    void UserRatingProvider::stop()
-    {
-      bool expected = false;
-      if (stopped_.compare_exchange_strong(expected, true))
-      {
-        {
-          std::lock_guard<std::mutex> stopLock(stopMutex_);
-          stopCondVar_.notify_one();
-        }
-
-        if (watcherThread_.joinable())
-        {
-          watcherThread_.join();
-        }
-      }
     }
 
     void UserRatingProvider::addDeal(const core::DealInformation& dealInformation)
