@@ -57,12 +57,9 @@ namespace rating_calculator {
       core::ITransportServer::Ptr transport_;
 
       std::thread ratingUpdateThread_;
-      std::mutex usersMutex_;
-      std::condition_variable usersCondVar_;
+      std::mutex mutex_;
+      std::condition_variable cv_;
       std::unordered_set<core::UserIdentifier> connectedUsers_;
-
-      std::mutex stopMutex_;
-      std::condition_variable stopCondVar_;
 
       tempstore::UserRatingProvider userRatingProvider_;
 

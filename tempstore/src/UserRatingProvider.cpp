@@ -47,6 +47,8 @@ namespace rating_calculator {
       result.reserve(nPositions);
 
       auto& userDataStore = dataStoreFactory_->getUserDataStore();
+
+      std::lock_guard<std::mutex> lck(storeMutex_);
       auto userRatingCollection = sortedDealContainer_.getHeadPositions(nPositions);
 
       for (const auto& userRating : userRatingCollection)
@@ -154,7 +156,10 @@ namespace rating_calculator {
           stopCondVar_.notify_one();
         }
 
-        watcherThread_.join();
+        if (watcherThread_.joinable())
+        {
+          watcherThread_.join();
+        }
       }
     }
 

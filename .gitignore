@@ -1,5 +1,11 @@
-# Build directories
+# Build  & testing directories
 build/
+Testing/
+
+# Temporary disable files in development
+kafkaapi/
+rabbitapi/
+
 
 # Notes
 Notes.md

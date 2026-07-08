@@ -35,31 +35,38 @@ namespace rating_calculator {
         ratingUpdateThread_ = std::thread(
             [this]()
             {
-              while (!stopped_.load())
+              while (true)
               {
                 std::vector<core::UserIdentifier> snapshot;
                 {
-                  std::unique_lock<std::mutex> lck(usersMutex_);
-                  while (connectedUsers_.empty() && !stopped_.load())
+                  std::unique_lock<std::mutex> lck(mutex_);
+                  cv_.wait(lck,
+                           [this]()
+                           {
+                             return !connectedUsers_.empty() || stopped_.load();
+                           });
+                  if (stopped_.load())
                   {
-                    usersCondVar_.wait_for(lck, std::chrono::seconds(1));
+                    break;
                   }
                   snapshot.assign(connectedUsers_.begin(), connectedUsers_.end());
                 }
 
                 for (core::UserIdentifier userId : snapshot)
                 {
-                  if (!stopped_.load())
+                  if (stopped_.load())
                   {
-                    sendUserRelativeRating(userId);
+                    break;
                   }
+                  sendUserRelativeRating(userId);
                 }
 
-                if (!stopped_.load())
-                {
-                  std::unique_lock<std::mutex> stopLock(stopMutex_);
-                  stopCondVar_.wait_for(stopLock, ratingUpdateTimeout_);
-                }
+                std::unique_lock<std::mutex> lck(mutex_);
+                cv_.wait_for(lck, ratingUpdateTimeout_,
+                             [this]()
+                             {
+                               return stopped_.load();
+                             });
               }
             });
       }
@@ -70,15 +77,7 @@ namespace rating_calculator {
       bool expected = false;
       if (stopped_.compare_exchange_strong(expected, true))
       {
-        {
-          std::lock_guard<std::mutex> stopLock(stopMutex_);
-          stopCondVar_.notify_one();
-        }
-
-        {
-          std::lock_guard<std::mutex> lck(usersMutex_);
-          usersCondVar_.notify_all();
-        }
+        cv_.notify_all();
         userRatingProvider_.stop();
         if (ratingUpdateThread_.joinable())
         {
@@ -89,25 +88,24 @@ namespace rating_calculator {
 
     void UserRatingWatcher::userConnected(core::UserIdentifier userId)
     {
-      std::lock_guard<std::mutex> lck(usersMutex_);
-
-      const bool inserted = connectedUsers_.insert(userId).second;
-      if (!inserted)
       {
-        mdebug_warn("Duplicated connection received for user: '%lu'.", userId);
+        std::lock_guard<std::mutex> lck(mutex_);
+        if (connectedUsers_.insert(userId).second)
+        {
+          mdebug_info("New user connected: '%lu'.", userId);
+          cv_.notify_one();
+        }
+        else
+        {
+          mdebug_warn("Duplicated connection received for user: '%lu'.", userId);
+        }
       }
-      else
-      {
-        mdebug_info("New user connected: '%lu'.", userId);
-        usersCondVar_.notify_one();
-      }
-
       sendUserRelativeRating(userId);
     }
 
     void UserRatingWatcher::userDisconnected(core::UserIdentifier userId)
     {
-      std::lock_guard<std::mutex> lck(usersMutex_);
+      std::lock_guard<std::mutex> lck(mutex_);
 
       if (connectedUsers_.erase(userId) == 0)
       {
