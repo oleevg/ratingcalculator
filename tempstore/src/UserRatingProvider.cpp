@@ -5,6 +5,7 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <ratio>
@@ -79,11 +80,10 @@ namespace rating_calculator {
       std::lock_guard<std::mutex> lck(storeMutex_);
       auto userRatingCollection = sortedDealContainer_.getHeadPositions(nPositions);
 
-      for (const auto& userRating : userRatingCollection)
-      {
-        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position,
-                            userRating.value.amount);
-      }
+      std::transform(userRatingCollection.cbegin(), userRatingCollection.cend(), std::back_inserter(result),
+                     [&userDataStore](const auto& r) {
+                       return core::UserPosition(userDataStore.getUserInformation(r.value.id), r.position, r.value.amount);
+                     });
 
       return result;
     }
@@ -99,11 +99,10 @@ namespace rating_calculator {
       std::lock_guard<std::mutex> lck(storeMutex_);
       auto userRatingCollection = sortedDealContainer_.getHighPositions(userIdentifier, nPositions);
 
-      for (const auto& userRating : userRatingCollection)
-      {
-        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position,
-                            userRating.value.amount);
-      }
+      std::transform(userRatingCollection.cbegin(), userRatingCollection.cend(), std::back_inserter(result),
+                     [&userDataStore](const auto& r) {
+                       return core::UserPosition(userDataStore.getUserInformation(r.value.id), r.position, r.value.amount);
+                     });
 
       return result;
     }
@@ -119,11 +118,10 @@ namespace rating_calculator {
       std::lock_guard<std::mutex> lck(storeMutex_);
       auto userRatingCollection = sortedDealContainer_.getLowPositions(userIdentifier, nPositions);
 
-      for (const auto& userRating : userRatingCollection)
-      {
-        result.emplace_back(userDataStore.getUserInformation(userRating.value.id), userRating.position,
-                            userRating.value.amount);
-      }
+      std::transform(userRatingCollection.cbegin(), userRatingCollection.cend(), std::back_inserter(result),
+                     [&userDataStore](const auto& r) {
+                       return core::UserPosition(userDataStore.getUserInformation(r.value.id), r.position, r.value.amount);
+                     });
 
       return result;
     }

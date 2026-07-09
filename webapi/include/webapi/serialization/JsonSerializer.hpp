@@ -8,8 +8,10 @@
 #ifndef RATINGCALCULATOR_JSONSERIALIZER_HPP
 #define RATINGCALCULATOR_JSONSERIALIZER_HPP
 
-#include <vector>
+#include <algorithm>
+#include <iterator>
 #include <string>
+#include <vector>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -84,10 +86,10 @@ namespace rating_calculator {
         {
           boost::property_tree::ptree result;
 
-          for (const auto& item : value)
-          {
-            result.push_back({"", JsonSerializer<T>::Serialize(item)});
-          }
+          std::transform(value.cbegin(), value.cend(), std::back_inserter(result),
+                         [](const auto& item) {
+                           return boost::property_tree::ptree::value_type("", JsonSerializer<T>::Serialize(item));
+                         });
 
           return result;
         }

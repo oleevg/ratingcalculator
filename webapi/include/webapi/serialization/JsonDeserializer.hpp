@@ -8,6 +8,8 @@
 #ifndef RATINGCALCULATOR_JSONDESERIALIZER_HPP
 #define RATINGCALCULATOR_JSONDESERIALIZER_HPP
 
+#include <algorithm>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -81,10 +83,8 @@ namespace rating_calculator {
 
           std::vector<T> result;
           result.reserve(value.size());
-          for (const auto& item : value)
-          {
-            result.push_back(JsonDeserializer<T>::Parse(item.second));
-          }
+          std::transform(value.begin(), value.end(), std::back_inserter(result),
+                         [](const auto& item) { return JsonDeserializer<T>::Parse(item.second); });
 
           return result;
         }
