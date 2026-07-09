@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <stop_token>
 
 #include <core/ITransportClient.hpp>
 
@@ -52,11 +53,11 @@ namespace rating_calculator {
         WsProtocol<WsClient> protocol_;
         std::shared_ptr<WsClient::Connection> connection_;
 
-        std::thread clientThread_;
         std::mutex connMutex_;
-        std::condition_variable connCondVar_;
+        std::condition_variable_any connCondVar_;
         std::atomic<bool> connected_{false};
-        std::atomic<bool> stopped_{false};
+
+        std::jthread clientThread_;
       };
 
     } // namespace transport

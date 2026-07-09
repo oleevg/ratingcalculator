@@ -55,29 +55,29 @@ namespace rating_calculator {
         client_.on_close = [this](std::shared_ptr<WsClient::Connection>, int status, const std::string&)
         {
           mdebug_info("WsTransportClient: connection closed (status %d).", status);
-          stopped_.store(true);
-          connCondVar_.notify_all();
+          clientThread_.request_stop();
         };
 
         client_.on_error = [this](std::shared_ptr<WsClient::Connection>, const SimpleWeb::error_code& ec)
         {
           mdebug_error("WsTransportClient: error: %s (%d).", ec.message().c_str(), ec.value());
-          stopped_.store(true);
-          connCondVar_.notify_all();
+          clientThread_.request_stop();
         };
 
-        clientThread_ = std::thread(
-            [this]()
+        clientThread_ = std::jthread(
+            [this](std::stop_token st)
             {
+              std::stop_callback cb(st, [this]{
+                client_.stop();
+                connCondVar_.notify_all();
+              });
               client_.start();
             });
       }
 
       void WsTransportClient::disconnect()
       {
-        stopped_.store(true);
-        connCondVar_.notify_all();
-        client_.stop();
+        clientThread_.request_stop();
         if (clientThread_.joinable())
         {
           clientThread_.join();
@@ -103,7 +103,7 @@ namespace rating_calculator {
         connCondVar_.wait_for(lck, timeout,
                               [this]()
                               {
-                                return connected_.load() || stopped_.load();
+                                return connected_.load() || clientThread_.get_stop_token().stop_requested();
                               });
         return connected_.load();
       }

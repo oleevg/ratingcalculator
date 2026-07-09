@@ -55,10 +55,11 @@ namespace rating_calculator {
         WsProtocol<WsServer>::Ptr protocol_;
         MessageHandler messageHandler_;
 
-        std::thread serverThread_;
         std::mutex connectionsMutex_;
         std::unordered_map<core::UserIdentifier, std::weak_ptr<WsConnection>> userToConnection_;
         std::unordered_map<WsConnection*, core::UserIdentifier> connectionToUser_;
+
+        std::jthread serverThread_;
       };
 
     } // namespace transport

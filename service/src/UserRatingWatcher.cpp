@@ -5,6 +5,8 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
+#include <semaphore>
+#include <stop_token>
 #include <vector>
 
 #include <core/ulog.h>
@@ -17,69 +19,68 @@ namespace rating_calculator {
 
   namespace service {
 
-    constexpr std::size_t secondsInWeek = 7 * 24 * 3600;
+    constexpr auto secondsInWeek = 7 * 24 * 3600;
 
     UserRatingWatcher::UserRatingWatcher(const std::chrono::seconds& ratingUpdateTimeout, std::size_t nRatingPositions,
                                          const core::IDataStoreFactory::Ptr& dataStoreFactory,
                                          const core::ITransportServer::Ptr& transport)
         : ratingUpdateTimeout_(ratingUpdateTimeout), nRatingPositions_(nRatingPositions), transport_(transport),
-          stopped_(false), userRatingProvider_(core::TimeHelper::WeekDay::Monday, secondsInWeek, dataStoreFactory)
+          userRatingProvider_(core::TimeHelper::WeekDay::Monday, std::chrono::seconds(secondsInWeek), dataStoreFactory)
     {}
 
     void UserRatingWatcher::start()
     {
-      if (!stopped_.load())
-      {
-        ratingUpdateThread_ = std::thread(
-            [this]()
+      ratingUpdateThread_ = std::jthread(
+          [this](std::stop_token st)
+          {
+            while (true)
             {
-              while (true)
+              std::vector<core::UserIdentifier> snapshot;
               {
-                std::vector<core::UserIdentifier> snapshot;
-                {
-                  std::unique_lock<std::mutex> lck(mutex_);
-                  cv_.wait(lck,
-                           [this]()
-                           {
-                             return !connectedUsers_.empty() || stopped_.load();
-                           });
-                  if (stopped_.load())
-                  {
-                    break;
-                  }
-                  snapshot.assign(connectedUsers_.begin(), connectedUsers_.end());
-                }
-
-                for (core::UserIdentifier userId : snapshot)
-                {
-                  if (stopped_.load())
-                  {
-                    break;
-                  }
-                  sendUserRelativeRating(userId);
-                }
-
                 std::unique_lock<std::mutex> lck(mutex_);
-                cv_.wait_for(lck, ratingUpdateTimeout_,
-                             [this]()
-                             {
-                               return stopped_.load();
-                             });
+                if (!cv_.wait(lck, st,
+                              [this]()
+                              {
+                                return !connectedUsers_.empty();
+                              }))
+                {
+                  break;
+                }
+                snapshot.assign(connectedUsers_.begin(), connectedUsers_.end());
               }
-            });
-      }
+
+              for (core::UserIdentifier userId : snapshot)
+              {
+                if (st.stop_requested())
+                {
+                  break;
+                }
+                sendUserRelativeRating(userId);
+              }
+
+              {
+                std::binary_semaphore sem{0};
+                std::stop_callback cb(st,
+                                      [&sem]
+                                      {
+                                        sem.release();
+                                      });
+                sem.try_acquire_for(ratingUpdateTimeout_);
+              }
+              if (st.stop_requested())
+              {
+                break;
+              }
+            }
+          });
     }
 
     void UserRatingWatcher::stop()
     {
-      bool expected = false;
-      if (stopped_.compare_exchange_strong(expected, true))
+      ratingUpdateThread_.request_stop();
+      if (ratingUpdateThread_.joinable())
       {
-        cv_.notify_all();
-        if (ratingUpdateThread_.joinable())
-        {
-          ratingUpdateThread_.join();
-        }
+        ratingUpdateThread_.join();
       }
     }
 

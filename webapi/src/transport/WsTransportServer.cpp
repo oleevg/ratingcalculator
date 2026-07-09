@@ -111,9 +111,10 @@ namespace rating_calculator {
         protocol_->start();
 
         auto self = shared_from_this();
-        serverThread_ = std::thread(
-            [self]()
+        serverThread_ = std::jthread(
+            [self](std::stop_token st)
             {
+              std::stop_callback cb(st, [self]{ self->server_.stop(); });
               self->server_.start();
             });
       }
@@ -125,7 +126,7 @@ namespace rating_calculator {
 
       void WsTransportServer::stop()
       {
-        server_.stop();
+        serverThread_.request_stop();
         protocol_->stop();
         if (serverThread_.joinable())
         {

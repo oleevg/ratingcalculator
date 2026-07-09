@@ -9,7 +9,6 @@
 #define RATINGCALCULATOR_USERRATINGWATCHER_HPP
 
 #include <memory>
-#include <atomic>
 #include <chrono>
 #include <thread>
 #include <mutex>
@@ -56,14 +55,13 @@ namespace rating_calculator {
       std::chrono::seconds ratingUpdateTimeout_;
       core::ITransportServer::Ptr transport_;
 
-      std::thread ratingUpdateThread_;
       std::mutex mutex_;
-      std::condition_variable cv_;
+      std::condition_variable_any cv_;
       std::unordered_set<core::UserIdentifier> connectedUsers_;
 
       tempstore::UserRatingProvider userRatingProvider_;
 
-      std::atomic<bool> stopped_;
+      std::jthread ratingUpdateThread_;
     };
 
   } // namespace service

@@ -5,8 +5,11 @@
  *      Author: Oleg F., fedorov.ftf@gmail.com
  */
 
+#include <chrono>
 #include <ctime>
 #include <ratio>
+#include <semaphore>
+#include <stop_token>
 
 #include <core/ulog.h>
 
@@ -16,7 +19,8 @@ namespace rating_calculator {
 
   namespace tempstore {
 
-    UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, std::uint64_t periodDuration,
+    UserRatingProvider::UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay,
+                                           std::chrono::seconds periodDuration,
                                            const core::IDataStoreFactory::Ptr& dataStoreFactory)
         : periodDuration_(periodDuration), dataStoreFactory_(dataStoreFactory), sortedDealContainer_(UINT16_MAX)
     {
@@ -29,15 +33,20 @@ namespace rating_calculator {
             addDeal(dealInformation);
           });
 
-      watcherThread_ = std::thread(
-          [this]()
+      watcherThread_ = std::jthread(
+          [this](std::stop_token st)
           {
-            while (true)
+            while (!st.stop_requested())
             {
               {
-                std::unique_lock<std::mutex> lck(stopMutex_);
-                stopCondVar_.wait_until(lck, endTime_, [this]() { return stopped_; });
-                if (stopped_)
+                std::binary_semaphore sem{0};
+                std::stop_callback cb(st,
+                                      [&sem]
+                                      {
+                                        sem.release();
+                                      });
+                sem.try_acquire_until(endTime_);
+                if (st.stop_requested())
                 {
                   break;
                 }
@@ -53,18 +62,7 @@ namespace rating_calculator {
           });
     }
 
-    UserRatingProvider::~UserRatingProvider()
-    {
-      {
-        std::lock_guard<std::mutex> lck(stopMutex_);
-        stopped_ = true;
-        stopCondVar_.notify_one();
-      }
-      if (watcherThread_.joinable())
-      {
-        watcherThread_.join();
-      }
-    }
+    UserRatingProvider::~UserRatingProvider() = default;
 
     bool UserRatingProvider::isUserPresent(const core::UserIdentifier& userIdentifier) const
     {
@@ -135,7 +133,6 @@ namespace rating_calculator {
       auto& userDataStore = dataStoreFactory_->getUserDataStore();
 
       std::lock_guard<std::mutex> lck(storeMutex_);
-
       auto userRating = sortedDealContainer_.getPosition(userIdentifier);
 
       return core::UserPosition(userDataStore.getUserInformation(userIdentifier), userRating.position,

@@ -8,10 +8,10 @@
 #ifndef RATINGCALCULATOR_WSPROTOCOL_HPP
 #define RATINGCALCULATOR_WSPROTOCOL_HPP
 
-#include <atomic>
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
 #include <unordered_map>
 
 #include <boost/property_tree/ptree.hpp>
@@ -112,13 +112,10 @@ namespace rating_calculator {
 
         ResendMessageStore resendStore;
 
-        std::thread resendStoreThread;
         std::mutex resendStoreMutex;
-        std::condition_variable resendStoreCondVar;
+        std::condition_variable_any resendStoreCondVar;
 
-        std::atomic<bool> stopped;
-        std::mutex stopMutex;
-        std::condition_variable stopCondVar;
+        std::jthread resendStoreThread;
       };
 
     } // namespace transport

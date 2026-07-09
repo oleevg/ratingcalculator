@@ -8,13 +8,10 @@
 #ifndef RATINGCALCULATOR_SORTEDUSERDEALSTORE_HPP
 #define RATINGCALCULATOR_SORTEDUSERDEALSTORE_HPP
 
-#include <map>
-#include <cstdint>
 #include <chrono>
-#include <unordered_map>
+#include <cstdint>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
 
 #include <boost/noncopyable.hpp>
 
@@ -51,7 +48,7 @@ namespace rating_calculator {
        * @param periodDuration Rating calculation period duration in seconds.
        * @param dataStoreFactory
        */
-      UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, std::uint64_t periodDuration,
+      UserRatingProvider(core::TimeHelper::WeekDay startPeriodDay, std::chrono::seconds periodDuration,
                          const core::IDataStoreFactory::Ptr& dataStoreFactory);
 
       ~UserRatingProvider();
@@ -107,17 +104,14 @@ namespace rating_calculator {
     private:
       core::TimePoint startTime_;
       core::TimePoint endTime_;
-      std::uint64_t periodDuration_;
+      std::chrono::seconds periodDuration_;
 
-      std::thread watcherThread_;
       mutable std::mutex storeMutex_;
-
-      std::mutex stopMutex_;
-      std::condition_variable stopCondVar_;
-      bool stopped_{false};
 
       core::IDataStoreFactory::Ptr dataStoreFactory_;
       SortedDealContainer sortedDealContainer_;
+
+      std::jthread watcherThread_;
     };
 
   } // namespace tempstore

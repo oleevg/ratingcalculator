@@ -7,6 +7,8 @@
 
 #include <cstdint>
 #include <list>
+#include <semaphore>
+#include <stop_token>
 
 #include <core/ulog.h>
 #include <core/ThreadHelper.hpp>
@@ -47,7 +49,7 @@ namespace rating_calculator {
 
       template <class ConnectionSide>
       WsProtocol<ConnectionSide>::WsProtocol(std::size_t resendNumber, int resendTimeout)
-          : resendNumber_(resendNumber), resendTimeout_(resendTimeout), stopped(false)
+          : resendNumber_(resendNumber), resendTimeout_(resendTimeout)
       {}
 
       template <class ConnectionSide> std::size_t WsProtocol<ConnectionSide>::getInCounter()
@@ -139,68 +141,67 @@ namespace rating_calculator {
 
       template <class ConnectionSide> void WsProtocol<ConnectionSide>::start()
       {
-        resendStoreThread = std::thread(
-            [this]()
+        resendStoreThread = std::jthread(
+            [this](std::stop_token st)
             {
-              while (!stopped.load())
+              while (!st.stop_requested())
               {
-                std::unique_lock<std::mutex> lck(resendStoreMutex);
-
-                while (resendStore.empty() && !stopped.load())
                 {
-                  resendStoreCondVar.wait_for(lck, std::chrono::seconds(1));
-                }
-
-                std::list<WsMessageIdentifier> messagesToRemove;
-                for (auto& resendStoreItem : resendStore)
-                {
-                  auto messageId = resendStoreItem.first;
-                  MessageData& messageData = *resendStoreItem.second;
-
-                  if (messageData.resendCounter < resendNumber_)
+                  std::unique_lock<std::mutex> lck(resendStoreMutex);
+                  if (!resendStoreCondVar.wait(lck, st, [this]() { return !resendStore.empty(); }))
                   {
-                    if (messageData.lastSentTimePoint + std::chrono::seconds(resendTimeout_) <
-                        std::chrono::system_clock::now())
+                    break;
+                  }
+
+                  std::list<WsMessageIdentifier> messagesToRemove;
+                  for (auto& resendStoreItem : resendStore)
+                  {
+                    auto messageId = resendStoreItem.first;
+                    MessageData& messageData = *resendStoreItem.second;
+
+                    if (messageData.resendCounter < resendNumber_)
                     {
-                      auto connection = messageData.connection.lock();
-                      if (connection)
+                      if (messageData.lastSentTimePoint + std::chrono::seconds(resendTimeout_) <
+                          std::chrono::system_clock::now())
                       {
-                        mdebug_notice("Going to resend message with id: '%d'.", messageId);
-                        sendMessageInternal<ConnectionSide>(connection, messageData.message);
-                        ++messageData.resendCounter;
-                        messageData.lastSentTimePoint = std::chrono::system_clock::now();
+                        auto connection = messageData.connection.lock();
+                        if (connection)
+                        {
+                          mdebug_notice("Going to resend message with id: '%d'.", messageId);
+                          sendMessageInternal<ConnectionSide>(connection, messageData.message);
+                          ++messageData.resendCounter;
+                          messageData.lastSentTimePoint = std::chrono::system_clock::now();
+                        }
+                        else
+                        {
+                          messagesToRemove.push_back(messageId);
+                          mdebug_warn("Going to remove message '%d' from resend store as its client disconnected.",
+                                      messageId);
+                        }
                       }
                       else
                       {
-                        messagesToRemove.push_back(messageId);
-                        mdebug_warn("Going to remove message '%d' from resend store as its client disconnected.",
-                                    messageId);
+                        continue;
                       }
                     }
                     else
                     {
-                      continue;
+                      messagesToRemove.push_back(messageId);
+                      mdebug_warn("Going to remove message '%d' from resend store as its resend counter gone.",
+                                  messageId);
                     }
                   }
-                  else
+
+                  for (auto messageId : messagesToRemove)
                   {
-                    messagesToRemove.push_back(messageId);
-                    mdebug_warn("Going to remove message '%d' from resend store as its resend counter gone.",
-                                messageId);
+                    removeFromResendStoreUnsafe(messageId);
                   }
                 }
 
-                for (auto messageId : messagesToRemove)
                 {
-                  removeFromResendStoreUnsafe(messageId);
-                }
-
-                lck.unlock();
-
-                if (!stopped.load())
-                {
-                  std::unique_lock<std::mutex> stopLock(stopMutex);
-                  stopCondVar.wait_for(stopLock, std::chrono::seconds(resendTimeout_));
+                  std::binary_semaphore sem{0};
+                  std::stop_callback cb(st, [&sem]{ sem.release(); });
+                  sem.try_acquire_for(std::chrono::seconds(resendTimeout_));
                 }
               }
             });
@@ -208,14 +209,9 @@ namespace rating_calculator {
 
       template <class ConnectionSide> void WsProtocol<ConnectionSide>::stop()
       {
-        bool expected = false;
-        if (stopped.compare_exchange_strong(expected, true))
+        resendStoreThread.request_stop();
+        if (resendStoreThread.joinable())
         {
-          {
-            std::lock_guard<std::mutex> lck(stopMutex);
-            stopCondVar.notify_one();
-          }
-
           resendStoreThread.join();
         }
       }
