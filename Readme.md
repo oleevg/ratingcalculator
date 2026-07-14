@@ -1,12 +1,18 @@
 # Project Title
 
-Network service that provides traders rating calculation according to their successful deals during the specified period.
+A network service that provides traders rating calculation according to their successful deals during the specified period.
 
 ### Description
 
-WebSocket protocol is used to communicate with the service. [Simple-WebSocket-Server](https://github.com/eidheim/Simple-WebSocket-Server) header-only implementation is used in project to deal with WebSocket protocol.
+The service's response message contains rating information relative to the specific user. Rating is calculated within the limited period of time starting from the current Monday 00:00:00 and ending on the next Monday 00:00:00. The service sends response messages with relative rating information on every user's connection and also periodically (with the specified timeout) for all connected users.
 
-The service provides 'http://hostname:port/rating' WebSocket endpoint to receive clients connections.
+The project contains simple test client that emulates users activities and sends the corresponding messages to the server. See section 'Usage' for additional information.
+
+The service supports two communication channels that can be selected when running the service:
+- gRPC
+- WebSocket: [Simple-WebSocket-Server](https://github.com/eidheim/Simple-WebSocket-Server) header-only implementation is used in the project for WebSocket protocol support.
+
+When using WebSockets, the service provides 'http://hostname:port/rating' endpoint to communicate with clients.
 
 The service supports the following client messages transmitted in JSON format:
 
@@ -16,12 +22,7 @@ The service supports the following client messages transmitted in JSON format:
 * user_connected(id)
 * user_disconnected(id)
 
-
-The service uses its own simple protocol (WsProtocol) upon WebSocket messages. So any supported message must be wrapped in WsProtocol's message (WsMessage).
-
-The service's response message contains specific user relative rating. The rating is calculated within the limited period of time starting from the current Monday 00:00:00 and ending on the next Monday 00:00:00. The service sends the response message with rating information on every user's connection and also periodically in the specified timeout for all connected users.
-
-The project contains simple test client that emulates users activities and sends the corresponding messages to the server. See section 'Usage' for additional information.
+The service uses its own simple protocol (`WsProtocol`) upon WebSocket messages. So any supported message must be wrapped in WsProtocol's message (`WsMessage`).
 
 ### Prerequisites
 
@@ -49,10 +50,11 @@ The project contains simple test client that emulates users activities and sends
     $ ./ratingCalculator_service -h
     Usage: ./ratingCalculator_service [options]...
     Options:
-      -p [ --port ] arg (=88888) The port number to listen.
-      -t [ --period ] arg (=5)   Rating update period in seconds.
-      --threads arg (=5)         The service's thread pool size.
-      -h [ --help ]              As it says.
+      -p [ --port ] arg (=88888)            Port to listen on (ws/grpc).
+      -t [ --period ] arg (=5)              Rating update period in seconds.
+      --threads arg (=5)                    Thread pool size (ws).
+      --transport arg (=ws)                 Transport: ws | grpc.
+      -h [ --help ]                         Show this help message.
 ```
 
 ### Usage
@@ -72,12 +74,12 @@ The project contains simple test client that emulates users activities and sends
    $ ./ratingCalculator_testClient -h
    Usage: ./ratingCalculator_testClient [options]...
    Options:
-     -a [ --address ] arg (=localhost) The server address to connect to.
-     -p [ --port ] arg (=88888)        The port number to connect to.
-     -t [ --timeout ] arg (=1)         Timeout in seconds to send generated test
-                                       requests.
-     -u [ --users ] arg (=100)         Maximum number of test users.
-     -h [ --help ]                     As it says.
+      -a [ --address ] arg (=localhost) Server address.
+      -p [ --port ] arg (=88888)        Server port.
+      -t [ --timeout ] arg (=1)         Seconds between generated requests.
+      -u [ --users ] arg (=100)         Number of simulated users.
+      --transport arg (=ws)             Transport to use: ws | grpc.
+      -h [ --help ]                     Show this help message.
 ```
 
 By default the server and the client applications write log messages on their corresponding terminals.
